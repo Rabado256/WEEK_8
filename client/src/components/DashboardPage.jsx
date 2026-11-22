@@ -24,6 +24,7 @@ export default function DashboardPage() {
   const [logs, setLogs] = useState([]);
   const [logForm, setLogForm] = useState({ title: "", url: "", takeaway: "" });
   const [mySubmission, setMySubmission] = useState(null);
+  const [scorecard, setScorecard] = useState(null);
   const [lateAccess, setLateAccess] = useState(null);
   const [submitForm, setSubmitForm] = useState({ githubUrl: "", liveUrl: "", approachNote: "", aiReflectionNote: "" });
   const [lateForm, setLateForm] = useState({ reason: "", blockers: "", requestedUntilWat: "" });
@@ -202,7 +203,7 @@ export default function DashboardPage() {
               <button className="btn btn-primary">Submit repository</button>
             </div>
           </form>
-          <style>{`.drawer-backdrop{position:fixed;inset:0;background:rgba(17,19,24,.35);display:flex;justify-content:flex-end;z-index:50}.drawer{width:min(560px,100vw);height:100%;overflow:auto;background:var(--bg);border-left:1px solid var(--border);padding:1.25rem}.drawer-head{display:flex;justify-content:space-between;gap:1rem;align-items:start;position:sticky;top:0;background:var(--bg);padding-bottom:.75rem}`}</style>
+          <style>{`.drawer-backdrop{position:fixed;inset:0;background:rgba(2,8,23,.55);backdrop-filter:blur(4px);display:flex;justify-content:flex-end;z-index:50}.drawer{width:min(560px,100vw);height:100%;overflow:auto;background:linear-gradient(180deg,#141d33,#0f1729);border-left:1px solid var(--border);padding:1.5rem;box-shadow:-20px 0 60px rgba(0,0,0,.4)}.drawer-head{display:flex;justify-content:space-between;gap:1rem;align-items:start;position:sticky;top:0;background:linear-gradient(180deg,#141d33 60%,transparent);padding-bottom:1rem;z-index:1}`}</style>
         </div>
       )}
       {lateOpen && (

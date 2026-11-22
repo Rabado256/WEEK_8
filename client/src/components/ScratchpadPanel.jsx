@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 const DEFAULT_HTML = "<main>\n  <h1>Hello Dev8</h1>\n  <p>Test your idea here.</p>\n</main>";
-const DEFAULT_CSS = "body{font-family:sans-serif;padding:2rem;} h1{color:#1f4d3a;}";
+const DEFAULT_CSS = "body{font-family:'Segoe UI',sans-serif;padding:2rem;background:#0b1220;color:#eef4ff;} h1{color:#10b981;} button{background:linear-gradient(135deg,#10b981,#06b6d4);color:#fff;border:0;padding:.6rem 1rem;border-radius:8px;}";
 const DEFAULT_JS = "console.log('Dev8 scratchpad ready');";
 
 export default function ScratchpadPanel({ weekNumber, sandboxMode }) {

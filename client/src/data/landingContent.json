@@ -1,35 +1,34 @@
 {
   "hero": {
     "eyebrow": "8-week mentorship cohort",
-    "headline": "Build real software, one focused week at a time.",
-    "subheadline": "Dev8 is a commitment-based mentorship platform where you research independently, build practical projects, get mentor feedback, and ship.",
-    "primaryCta": "Enter Cohort Workspace",
-    "secondaryCta": "See How It Works"
+    "headline": "Build real skills. Ship real work.",
+    "subheadline": "A focused mentorship where you research, build, get feedback, and ship every week.",
+    "primaryCta": "Enter Workspace",
+    "secondaryCta": "How it works"
   },
   "mentorship": {
-    "title": "Course outlines only. Real guidance. Real work.",
-    "body": "Dev8 gives you the weekly direction, not spoon-fed lessons. You research, discuss, build, submit, review, improve, and ship.",
-    "loop": ["Learn", "Discuss", "Build", "Submit", "Review", "Improve", "Ship"]
+    "title": "Direction, not spoon-feeding.",
+    "body": "Get a clear weekly brief, do the work, and grow through real feedback.",
+    "loop": ["Learn", "Build", "Submit", "Review", "Ship"]
   },
   "howItWorks": [
-    { "title": "Monday (WAT)", "detail": "Weekly course outline and practical project brief drop." },
-    { "title": "Mon–Sat", "detail": "Independent research, sandbox practice, peer discussion, and mentor clarification." },
-    { "title": "Sunday 11:59 PM WAT", "detail": "Submit your GitHub repo with approach and AI reflection." },
-    { "title": "Review & Unlock", "detail": "Mentor feedback, peer review, and next week unlock after submission." }
+    { "title": "Monday brief", "detail": "Get your weekly outline and project." },
+    { "title": "Build & ask", "detail": "Research, practice, and get unstuck fast." },
+    { "title": "Sunday ship", "detail": "Submit your repo before 11:59 PM WAT." },
+    { "title": "Review & grow", "detail": "Apply feedback and unlock the next week." }
   ],
   "whyUs": [
-    { "title": "Anti-Copy AI Ethics", "detail": "AI is allowed for learning, but blind copy-pasting is rejected." },
-    { "title": "GitHub-Gated Mastery", "detail": "You advance by shipping real repositories, not by watching videos." },
-    { "title": "Transparent 5-Pillar Growth", "detail": "40% Projects, 20% Code Quality, 15% Discussion, 15% Weekly Tasks, 10% Collaboration." },
-    { "title": "Zero-Noise Low-Data Design", "detail": "Calm, fast interface built for focus and low bandwidth." }
+    { "title": "Ship real repos", "detail": "Progress is earned through GitHub submissions." },
+    { "title": "Honest AI use", "detail": "Use AI to learn — never to fake the work." },
+    { "title": "Clear scoring", "detail": "A transparent 5-pillar growth scorecard." }
   ],
   "successStories": [
-    { "name": "Amina — Week 8 Capstone", "outcome": "Went from HTML/CSS fundamentals to shipping a full-stack capstone with documented AI use and mentor-reviewed GitHub history.", "link": "https://github.com/topics/dev8" },
-    { "name": "Tunde — Consistency Win", "outcome": "Used weekly clarification tickets and revision loops to turn missed concepts into a clean, reviewed repository by Sunday cutoff.", "link": "https://github.com/topics/dev8" },
-    { "name": "Cohort 1 Showcase", "outcome": "8-week shipped outcomes: real repositories, live demos, and growth tracked through the 5-pillar scorecard.", "link": "https://github.com/topics/dev8" }
+    { "name": "Linear-style Landing", "outcome": "Clean layout, sharp typography, and strong visual hierarchy.", "link": "https://github.com/linear", "site": "linear.app", "image": "/images/proof-linear.png" },
+    { "name": "Stripe-style Product Page", "outcome": "Polished spacing, confident copy, and conversion-focused sections.", "link": "https://github.com/stripe", "site": "stripe.com", "image": "/images/proof-stripe.png" },
+    { "name": "Vercel-style Developer Site", "outcome": "Dark aesthetic, crisp UI, and fast modern product feel.", "link": "https://github.com/vercel", "site": "vercel.com", "image": "/images/proof-vercel.png" }
   ],
   "footer": {
     "timezone": "WAT (Africa/Lagos, UTC+1)",
-    "note": "Low-bandwidth by design. No heavy media walls."
+    "note": "Built for focus. Built for low bandwidth."
   }
 }

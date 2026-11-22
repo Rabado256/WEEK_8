@@ -245,6 +245,18 @@ app.get("/api/scores/me", authRequired, requireRole("MENTEE"), (req, res) => {
   res.json({ score: { ...score, mentorSummary: row?.mentor_summary || "" }, attendance });
 });
 
+app.get("/api/export/me", authRequired, requireRole("MENTEE"), (req, res) => {
+  const weeks = db.prepare("SELECT week_number, status FROM weeks WHERE cohort_id=? ORDER BY week_number").all(req.user.cohort_id);
+  const progress = db.prepare("SELECT week_number, personal_notes, completed_topic_ids FROM week_progress WHERE user_id=?").all(req.user.id);
+  const logs = db.prepare("SELECT week_number, title, url, takeaway, created_at FROM research_logs WHERE user_id=? ORDER BY week_number, created_at").all(req.user.id);
+  const submissions = db.prepare("SELECT week_number, github_url, live_url, approach_note, ai_reflection_note, status, mentor_feedback, created_at, updated_at FROM submissions WHERE user_id=? ORDER BY week_number, created_at").all(req.user.id);
+  const clarifications = db.prepare("SELECT week_number, topic_id, what_i_tried, question, code_snippet, status, mentor_reply, learner_followup_note, is_pinned_faq, created_at FROM clarifications WHERE user_id=? ORDER BY week_number, created_at").all(req.user.id);
+  const attendance = db.prepare("SELECT week_number, status FROM attendance_records WHERE user_id=? ORDER BY week_number").all(req.user.id);
+  const scoreRow = db.prepare("SELECT * FROM rubric_scores WHERE user_id=?").get(req.user.id);
+  const score = computeWeightedScore(scoreRow || {});
+  res.json({ displayName: req.user.displayName, cohortCode: req.user.cohortCode, weeks, progress, logs, submissions, clarifications, attendance, score: { ...score, mentorSummary: scoreRow?.mentor_summary || "" } });
+});
+
 app.put("/api/mentees/:userId/scores", authRequired, requireRole("MENTOR"), (req, res) => {
   const userId = Number(req.params.userId);
   const mentee = db.prepare("SELECT id FROM users WHERE id=? AND cohort_id=? AND role='MENTEE'").get(userId, req.user.cohort_id);

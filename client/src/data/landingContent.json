@@ -1,0 +1,35 @@
+{
+  "hero": {
+    "eyebrow": "8-week mentorship cohort",
+    "headline": "Build real software, one focused week at a time.",
+    "subheadline": "Dev8 is a commitment-based mentorship platform where you research independently, build practical projects, get mentor feedback, and ship.",
+    "primaryCta": "Enter Cohort Workspace",
+    "secondaryCta": "See How It Works"
+  },
+  "mentorship": {
+    "title": "Course outlines only. Real guidance. Real work.",
+    "body": "Dev8 gives you the weekly direction, not spoon-fed lessons. You research, discuss, build, submit, review, improve, and ship.",
+    "loop": ["Learn", "Discuss", "Build", "Submit", "Review", "Improve", "Ship"]
+  },
+  "howItWorks": [
+    { "title": "Monday (WAT)", "detail": "Weekly course outline and practical project brief drop." },
+    { "title": "Mon–Sat", "detail": "Independent research, sandbox practice, peer discussion, and mentor clarification." },
+    { "title": "Sunday 11:59 PM WAT", "detail": "Submit your GitHub repo with approach and AI reflection." },
+    { "title": "Review & Unlock", "detail": "Mentor feedback, peer review, and next week unlock after submission." }
+  ],
+  "whyUs": [
+    { "title": "Anti-Copy AI Ethics", "detail": "AI is allowed for learning, but blind copy-pasting is rejected." },
+    { "title": "GitHub-Gated Mastery", "detail": "You advance by shipping real repositories, not by watching videos." },
+    { "title": "Transparent 5-Pillar Growth", "detail": "40% Projects, 20% Code Quality, 15% Discussion, 15% Weekly Tasks, 10% Collaboration." },
+    { "title": "Zero-Noise Low-Data Design", "detail": "Calm, fast interface built for focus and low bandwidth." }
+  ],
+  "successStories": [
+    { "name": "Amina — Week 8 Capstone", "outcome": "Went from HTML/CSS fundamentals to shipping a full-stack capstone with documented AI use and mentor-reviewed GitHub history.", "link": "https://github.com/topics/dev8" },
+    { "name": "Tunde — Consistency Win", "outcome": "Used weekly clarification tickets and revision loops to turn missed concepts into a clean, reviewed repository by Sunday cutoff.", "link": "https://github.com/topics/dev8" },
+    { "name": "Cohort 1 Showcase", "outcome": "8-week shipped outcomes: real repositories, live demos, and growth tracked through the 5-pillar scorecard.", "link": "https://github.com/topics/dev8" }
+  ],
+  "footer": {
+    "timezone": "WAT (Africa/Lagos, UTC+1)",
+    "note": "Low-bandwidth by design. No heavy media walls."
+  }
+}

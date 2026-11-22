@@ -1,0 +1,5 @@
+main { min-height: 60vh; }
+input, select, textarea { width: 100%; }
+h1,h2,h3 { line-height: 1.2; letter-spacing: -0.01em; }
+h2 { margin-top: 0; font-size: clamp(1.4rem, 3vw, 2rem); }
+section .container > h2 { margin-bottom: 1.25rem; }

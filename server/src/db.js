@@ -39,21 +39,14 @@ export function migrate() {
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
       UNIQUE (user_id, week_number)
     );
-    CREATE TABLE IF NOT EXISTS submissions (
+    CREATE TABLE IF NOT EXISTS research_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      cohort_id INTEGER NOT NULL REFERENCES cohorts(id) ON DELETE CASCADE,
       week_number INTEGER NOT NULL CHECK (week_number BETWEEN 1 AND 8),
-      github_url TEXT NOT NULL,
-      live_url TEXT,
-      approach_note TEXT NOT NULL,
-      ai_reflection_note TEXT NOT NULL,
-      status TEXT DEFAULT 'submitted' CHECK (status IN ('submitted','approved','needs_revision','follow_up_requested')),
-      mentor_feedback TEXT,
-      submitted_at TEXT DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE (user_id, week_number),
-      UNIQUE (cohort_id, week_number, github_url)
+      title TEXT NOT NULL,
+      url TEXT,
+      takeaway TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
     CREATE TABLE IF NOT EXISTS late_access_requests (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,6 +63,71 @@ export function migrate() {
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
       UNIQUE (user_id, week_number)
     );
+    CREATE TABLE IF NOT EXISTS submissions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      cohort_id INTEGER NOT NULL REFERENCES cohorts(id) ON DELETE CASCADE,
+      week_number INTEGER NOT NULL CHECK (week_number BETWEEN 1 AND 8),
+      github_url TEXT NOT NULL,
+      live_url TEXT,
+      approach_note TEXT NOT NULL,
+      ai_reflection_note TEXT NOT NULL,
+      status TEXT DEFAULT 'submitted' CHECK (status IN ('submitted','approved','needs_revision','follow_up_requested')),
+      mentor_feedback TEXT,
+      submitted_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (user_id, week_number),
+      UNIQUE (cohort_id, week_number, github_url)
+    );
+    CREATE TABLE IF NOT EXISTS clarifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      cohort_id INTEGER NOT NULL REFERENCES cohorts(id) ON DELETE CASCADE,
+      week_number INTEGER NOT NULL CHECK (week_number BETWEEN 1 AND 8),
+      topic_id TEXT NOT NULL,
+      what_i_tried TEXT NOT NULL,
+      question TEXT NOT NULL,
+      code_snippet TEXT,
+      mentor_reply TEXT,
+      learner_followup_note TEXT,
+      is_pinned_faq INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'open' CHECK (status IN ('open','answered','follow_up_requested','resolved')),
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS peer_reviews (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      submission_id INTEGER NOT NULL REFERENCES submissions(id) ON DELETE CASCADE,
+      reviewer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      strength_note TEXT NOT NULL,
+      suggestion_note TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (submission_id, reviewer_id)
+    );
+    CREATE TABLE IF NOT EXISTS attendance_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cohort_id INTEGER NOT NULL REFERENCES cohorts(id) ON DELETE CASCADE,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      week_number INTEGER NOT NULL CHECK (week_number BETWEEN 1 AND 8),
+      status TEXT DEFAULT 'absent' CHECK (status IN ('present','absent','excused')),
+      updated_by_mentor_id INTEGER REFERENCES users(id),
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (cohort_id, user_id, week_number)
+    );
+    CREATE TABLE IF NOT EXISTS rubric_scores (
+      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      projects_score REAL DEFAULT 0 CHECK (projects_score BETWEEN 0 AND 100),
+      understanding_score REAL DEFAULT 0 CHECK (understanding_score BETWEEN 0 AND 100),
+      discussion_score REAL DEFAULT 0 CHECK (discussion_score BETWEEN 0 AND 100),
+      weekly_tasks_score REAL DEFAULT 0 CHECK (weekly_tasks_score BETWEEN 0 AND 100),
+      collaboration_score REAL DEFAULT 0 CHECK (collaboration_score BETWEEN 0 AND 100),
+      mentor_summary TEXT DEFAULT '',
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_users_cohort_role ON users(cohort_id, role);
+    CREATE INDEX IF NOT EXISTS idx_submissions_cohort_week ON submissions(cohort_id, week_number, status);
+    CREATE INDEX IF NOT EXISTS idx_clarifications_cohort_week ON clarifications(cohort_id, week_number, status);
+    CREATE INDEX IF NOT EXISTS idx_attendance_cohort_week ON attendance_records(cohort_id, week_number);
   `);
 }
 

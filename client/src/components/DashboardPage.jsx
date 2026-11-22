@@ -2,21 +2,18 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import curriculum from "../data/curriculum.json";
 import { formatWat } from "../utils/scheduleWat";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
+import { api, clearSession, getSession } from "../utils/api";
 
 export default function DashboardPage() {
   const nav = useNavigate();
-  const [session] = useState(() => { try { return JSON.parse(localStorage.getItem("dev8_session")); } catch { return null; } });
+  const [session] = useState(getSession);
   const [weeks, setWeeks] = useState([]);
   const [error, setError] = useState("");
   const [now] = useState(() => formatWat(new Date()));
 
   useEffect(() => {
     if (!session?.token) { nav("/login"); return; }
-    fetch(`${API}/api/weeks`, { headers: { Authorization: `Bearer ${session.token}` } })
-      .then(async (r) => { const d = await r.json(); if (!r.ok) throw new Error(d.error || "Failed"); setWeeks(d.weeks || []); })
-      .catch((e) => setError(e.message));
+    api("/api/weeks").then((d) => setWeeks(d.weeks || [])).catch((e) => setError(e.message));
   }, [session, nav]);
 
   const active = weeks.find((w) => ["active_open", "late_access_granted", "closed_cutoff"].includes(w.state)) || weeks[0];
@@ -27,7 +24,7 @@ export default function DashboardPage() {
       <div className="container grid" style={{ gap: "1rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
           <div><span className="pill">Mentee Workspace</span><h1 style={{ marginBottom: 0 }}>Week {outline.weekNumber}: {outline.title}</h1><p className="muted">Current WAT: {now}</p></div>
-          <div style={{ display: "flex", gap: ".5rem" }}><Link className="btn" to="/">Landing</Link><button className="btn" onClick={() => { localStorage.removeItem("dev8_session"); nav("/login"); }}>Sign out</button></div>
+          <div style={{ display: "flex", gap: ".5rem" }}><Link className="btn" to="/">Landing</Link><button className="btn" onClick={() => { clearSession(); nav("/login"); }}>Sign out</button></div>
         </div>
         {error && <div className="card" style={{ color: "var(--danger)" }}>{error}</div>}
         <section className="card">

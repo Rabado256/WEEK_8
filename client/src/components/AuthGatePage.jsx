@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
+import { api, getSession, setSession } from "../utils/api";
 
 export default function AuthGatePage() {
-  const [form, setForm] = useState({ cohortCode: "", displayName: "", pin: "", role: "MENTEE" });
+  const existing = getSession();
+  const [form, setForm] = useState({ cohortCode: existing?.cohort?.code || "DEV8-2026", displayName: "", pin: "", role: "MENTEE" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const nav = useNavigate();
@@ -13,10 +13,8 @@ export default function AuthGatePage() {
     e.preventDefault();
     setLoading(true); setError("");
     try {
-      const res = await fetch(`${API}/api/auth/join`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Unable to sign in");
-      localStorage.setItem("dev8_session", JSON.stringify(data));
+      const data = await api("/api/auth/join", { method: "POST", body: form });
+      setSession(data);
       nav(data.user.role === "MENTOR" ? "/mentor" : "/dashboard");
     } catch (err) { setError(err.message); } finally { setLoading(false); }
   }

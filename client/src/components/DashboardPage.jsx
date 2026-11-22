@@ -58,6 +58,7 @@ export default function DashboardPage() {
       setLateAccess(d.lateAccess || null);
       if (d.submission) setSubmitForm({ githubUrl: d.submission.github_url || "", liveUrl: d.submission.live_url || "", approachNote: d.submission.approach_note || "", aiReflectionNote: d.submission.ai_reflection_note || "" });
     }).catch(() => {});
+    api("/api/scores/me").then((d) => { if (!cancelled) setScorecard(d); }).catch(() => {});
     return () => { cancelled = true; };
   }, [activeWeekNum, weeks]);
 
@@ -161,6 +162,21 @@ export default function DashboardPage() {
         </section>
 
         <ScratchpadPanel weekNumber={outline.weekNumber} sandboxMode={outline.sandboxMode} />
+
+        <section className="card">
+          <h2>5-pillar scorecard</h2>
+          {scorecard?.score ? (
+            <div className="grid" style={{ gap: ".5rem" }}>
+              <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: ".5rem" }}>
+                {[["Projects", scorecard.score.projects],["Understanding", scorecard.score.understanding],["Discussion", scorecard.score.discussion],["Weekly Tasks", scorecard.score.weeklyTasks],["Collaboration", scorecard.score.collaboration],["Weighted", scorecard.score.weightedTotal]].map(([k,v])=>(
+                  <div key={k} className="card" style={{ padding: ".6rem" }}><div className="muted">{k}</div><strong>{v}</strong></div>
+                ))}
+              </div>
+              {scorecard.score.mentorSummary && <p className="muted"><strong>Mentor summary:</strong> {scorecard.score.mentorSummary}</p>}
+              <div className="muted">Attendance: {scorecard.attendance?.length ? scorecard.attendance.map((a)=>`W${a.week_number} ${a.status}`).join(" · ") : "No records yet"}</div>
+            </div>
+          ) : <p className="muted">Scorecard will appear after mentor evaluation.</p>}
+        </section>
       </div>
       {submitOpen && (
         <div className="drawer-backdrop" role="dialog" aria-modal="true" onClick={() => setSubmitOpen(false)}>

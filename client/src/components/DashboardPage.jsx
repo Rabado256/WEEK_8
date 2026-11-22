@@ -10,6 +10,10 @@ import PeerGalleryDrawer from "./PeerGalleryDrawer";
 import ProgramCharterDrawer from "./ProgramCharterDrawer";
 import { buildWeekNotesMarkdown, downloadMarkdown } from "../utils/exportMarkdown";
 
+function Stat({ label, value, hint }) {
+  return <div className="d-stat"><span className="d-stat-label">{label}</span><strong className="d-stat-value">{value}</strong>{hint && <span className="d-stat-hint">{hint}</span>}</div>;
+}
+
 export default function DashboardPage() {
   const nav = useNavigate();
   const [session] = useState(getSession);
@@ -46,6 +50,7 @@ export default function DashboardPage() {
   }, [session, nav]);
 
   const outline = useMemo(() => curriculum.weeks.find((w) => w.weekNumber === activeWeekNum) || curriculum.weeks[0], [activeWeekNum]);
+  const activeWeek = useMemo(() => weeks.find((w) => w.weekNumber === activeWeekNum), [weeks, activeWeekNum]);
 
   useEffect(() => {
     if (!activeWeekNum) return;
@@ -112,94 +117,138 @@ export default function DashboardPage() {
     } catch (err) { setError(err.message); }
   }
 
-  function toggleTopic(id) {
-    setCompleted((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  function toggleTopic(id) { setCompleted((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]); }
+  async function exportNotes() {
+    try { setExporting(true); const data = await api("/api/export/me"); downloadMarkdown("dev8-week-notes.md", buildWeekNotesMarkdown(data)); }
+    catch (e) { setError(e.message); } finally { setExporting(false); }
   }
 
-  async function exportNotes() {
-    try {
-      setExporting(true);
-      const data = await api("/api/export/me");
-      downloadMarkdown("dev8-week-notes.md", buildWeekNotesMarkdown(data));
-    } catch (e) { setError(e.message); } finally { setExporting(false); }
-  }
+  const done = completed.length;
+  const total = outline.outlineTopics.length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  const status = activeWeek?.state || "loading";
 
   return (
-    <main className="section">
-      <div className="container grid" style={{ gap: "1rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
-          <div><span className="pill">Mentee Workspace</span><h1 style={{ marginBottom: 0 }}>Week {outline.weekNumber}: {outline.title}</h1><p className="muted">Current WAT: {now} · {saving}</p></div>
-          <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}><button className="btn" onClick={exportNotes} disabled={exporting}>{exporting ? "Exporting..." : "Export .md"}</button><button className="btn" onClick={() => setCharterOpen(true)}>Charter</button><button className="btn" onClick={() => setClarifyOpen(true)}>Clarifications</button><button className="btn" onClick={() => setGalleryOpen(true)}>Peer Gallery</button><button className="btn" onClick={() => setMapOpen(true)}>Week Map</button><Link className="btn" to="/">Landing</Link><button className="btn" onClick={() => { clearSession(); nav("/login"); }}>Sign out</button></div>
-        </div>
-        {error && <div className="card" style={{ color: "var(--danger)" }}>{error}</div>}
+    <main className="d-shell">
+      <div className="d-wrap">
+        <header className="d-topbar">
+          <div>
+            <div className="d-kicker"><span className="d-dot" />Mentee workspace</div>
+            <h1 className="d-title">Week {outline.weekNumber} <span className="d-title-muted">/ {outline.title}</span></h1>
+            <p className="d-meta">{now} WAT {saving && <span className="d-save">· {saving}</span>}</p>
+          </div>
+          <div className="d-actions">
+            <button className="btn" onClick={() => setMapOpen(true)}>Week map</button>
+            <button className="btn" onClick={() => setClarifyOpen(true)}>Clarify</button>
+            <button className="btn" onClick={() => setGalleryOpen(true)}>Gallery</button>
+            <button className="btn btn-primary" onClick={() => setSubmitOpen(true)}>{mySubmission ? "Resubmit" : "Submit project"}</button>
+            <details className="d-more">
+              <summary className="btn">More</summary>
+              <div className="d-more-menu card">
+                <button onClick={exportNotes} disabled={exporting}>{exporting ? "Exporting..." : "Export .md"}</button>
+                <button onClick={() => setCharterOpen(true)}>Charter</button>
+                <button onClick={() => setLateOpen(true)}>Request late access</button>
+                <Link to="/">Landing</Link>
+                <button onClick={() => { clearSession(); nav("/login"); }} className="d-danger">Sign out</button>
+              </div>
+            </details>
+          </div>
+        </header>
 
-        <section className="card">
-          <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
-            <div><strong>Status:</strong> <span className="pill">{weeks.find((w)=>w.weekNumber===activeWeekNum)?.state || "loading"}</span></div>
-            <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
-              <button className="btn btn-primary" onClick={() => setSubmitOpen(true)}>{mySubmission ? "Resubmit project" : "Submit project"}</button>
-              <button className="btn" onClick={() => setLateOpen(true)}>Request late access</button>
-            </div>
-          </div>
-          <p className="muted" style={{ marginTop: ".5rem" }}>Due Sunday 11:59 PM WAT. {mySubmission ? `Submission: ${mySubmission.status}` : "No submission yet."} {lateAccess ? `Late access: ${lateAccess.status}.` : ""}</p>
-          <h2>Topics to research</h2>
-          <div className="grid" style={{ gap: ".5rem" }}>
-            {outline.outlineTopics.map((t) => (
-              <label key={t.id} className="card" style={{ padding: ".75rem", display: "flex", gap: ".75rem", alignItems: "flex-start" }}>
-                <input type="checkbox" checked={completed.includes(t.id)} onChange={() => toggleTopic(t.id)} style={{ width: 18, height: 18, marginTop: 4 }} />
-                <div><strong>{t.topic}</strong><div className="muted">Keywords: {t.researchKeywords.join(", ")}</div></div>
-              </label>
-            ))}
-          </div>
-          <h2 style={{ marginTop: "1.25rem" }}>Personal notes</h2>
-          <textarea aria-label="Personal notes" rows={5} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Capture what you're learning this week..." />
-          <h2 style={{ marginTop: "1.25rem" }}>Project brief</h2>
-          <p><strong>{outline.projectBrief.title}</strong></p>
-          <p className="muted">{outline.projectBrief.description}</p>
-          <ul>{outline.projectBrief.acceptanceCriteria.map((c) => <li key={c}>{c}</li>)}</ul>
+        {error && <div className="d-alert">{error}</div>}
+
+        <section className="d-stats">
+          <Stat label="Status" value={<span className="pill">{status}</span>} hint={mySubmission ? `Submission: ${mySubmission.status}` : "No submission yet"} />
+          <Stat label="Progress" value={`${pct}%`} hint={`${done}/${total} topics checked`} />
+          <Stat label="Research logs" value={logs.length} hint="What you found & learned" />
+          <Stat label="Score" value={scorecard?.score?.weightedTotal ?? "—"} hint={scorecard?.score ? "Weighted 5-pillar" : "Awaiting review"} />
         </section>
 
-        <section className="card">
-          <h2>What I Found & Learned</h2>
-          <form onSubmit={addLog} className="grid" style={{ gap: ".75rem", marginBottom: "1rem" }}>
-            <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: ".75rem" }}>
-              <label className="grid" style={{ gap: ".35rem" }}><span>Resource title</span><input value={logForm.title} onChange={(e) => setLogForm({ ...logForm, title: e.target.value })} required /></label>
-              <label className="grid" style={{ gap: ".35rem" }}><span>URL (optional)</span><input value={logForm.url} onChange={(e) => setLogForm({ ...logForm, url: e.target.value })} placeholder="https://..." /></label>
-            </div>
-            <label className="grid" style={{ gap: ".35rem" }}><span>Takeaway</span><textarea rows={3} value={logForm.takeaway} onChange={(e) => setLogForm({ ...logForm, takeaway: e.target.value })} required /></label>
-            <div><button className="btn btn-primary">Add research log</button></div>
-          </form>
-          <div className="grid" style={{ gap: ".75rem" }}>
-            {logs.length ? logs.map((l) => <article key={l.id} className="card" style={{ padding: ".9rem" }}><strong>{l.title}</strong>{l.url && <div><a href={l.url} target="_blank" rel="noreferrer">Source</a></div>}<div className="muted">{l.takeaway}</div></article>) : <p className="muted">No research logs yet. Add what you discovered.</p>}
-          </div>
-        </section>
-
-        <ScratchpadPanel weekNumber={outline.weekNumber} sandboxMode={outline.sandboxMode} />
-
-        <section className="card">
-          <h2>5-pillar scorecard</h2>
-          {scorecard?.score ? (
-            <div className="grid" style={{ gap: ".5rem" }}>
-              <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: ".5rem" }}>
-                {[["Projects", scorecard.score.projects],["Understanding", scorecard.score.understanding],["Discussion", scorecard.score.discussion],["Weekly Tasks", scorecard.score.weeklyTasks],["Collaboration", scorecard.score.collaboration],["Weighted", scorecard.score.weightedTotal]].map(([k,v])=>(
-                  <div key={k} className="card" style={{ padding: ".6rem" }}><div className="muted">{k}</div><strong>{v}</strong></div>
+        <div className="d-main">
+          <div className="d-col">
+            <section className="d-panel">
+              <div className="d-panel-head"><h2>Research checklist</h2><span className="d-muted">{done}/{total}</span></div>
+              <div className="d-progress"><div style={{ width: `${pct}%` }} /></div>
+              <div className="d-topic-list">
+                {outline.outlineTopics.map((t) => (
+                  <label key={t.id} className={`d-topic ${completed.includes(t.id) ? "is-done" : ""}`}>
+                    <input type="checkbox" checked={completed.includes(t.id)} onChange={() => toggleTopic(t.id)} />
+                    <span className="d-check" aria-hidden="true" />
+                    <div><strong>{t.topic}</strong><div className="d-muted">{t.researchKeywords.join(" · ")}</div></div>
+                  </label>
                 ))}
               </div>
-              {scorecard.score.mentorSummary && <p className="muted"><strong>Mentor summary:</strong> {scorecard.score.mentorSummary}</p>}
-              <div className="muted">Attendance: {scorecard.attendance?.length ? scorecard.attendance.map((a)=>`W${a.week_number} ${a.status}`).join(" · ") : "No records yet"}</div>
-            </div>
-          ) : <p className="muted">Scorecard will appear after mentor evaluation.</p>}
-        </section>
+            </section>
+
+            <section className="d-panel">
+              <div className="d-panel-head"><h2>Project brief</h2><span className="pill">{outline.sandboxMode === "built-in" ? "Scratchpad" : "Cloud"}</span></div>
+              <p className="d-brief-title">{outline.projectBrief.title}</p>
+              <p className="d-muted">{outline.projectBrief.description}</p>
+              <ul className="d-criteria">{outline.projectBrief.acceptanceCriteria.map((c) => <li key={c}>{c}</li>)}</ul>
+            </section>
+
+            <ScratchpadPanel weekNumber={outline.weekNumber} sandboxMode={outline.sandboxMode} />
+
+            <section className="d-panel">
+              <div className="d-panel-head"><h2>Research log</h2><span className="d-muted">Evidence of learning</span></div>
+              <form onSubmit={addLog} className="d-log-form">
+                <input value={logForm.title} onChange={(e) => setLogForm({ ...logForm, title: e.target.value })} placeholder="Resource title" required />
+                <input value={logForm.url} onChange={(e) => setLogForm({ ...logForm, url: e.target.value })} placeholder="URL (optional)" />
+                <textarea rows={2} value={logForm.takeaway} onChange={(e) => setLogForm({ ...logForm, takeaway: e.target.value })} placeholder="Key takeaway..." required />
+                <div><button className="btn btn-primary">Add log</button></div>
+              </form>
+              <div className="d-log-list">
+                {logs.length ? logs.map((l) => (
+                  <article key={l.id} className="d-log-item">
+                    <div className="d-log-top"><strong>{l.title}</strong>{l.url && <a href={l.url} target="_blank" rel="noreferrer">source ↗</a>}</div>
+                    <p className="d-muted">{l.takeaway}</p>
+                  </article>
+                )) : <p className="d-muted">No logs yet. Capture what you learned.</p>}
+              </div>
+            </section>
+          </div>
+
+          <aside className="d-col d-side">
+            <section className="d-panel">
+              <div className="d-panel-head"><h2>Submission</h2><span className={`d-status-dot ${mySubmission ? "ok" : ""}`} /></div>
+              <p className="d-muted" style={{ marginTop: 0 }}>{mySubmission ? `Status: ${mySubmission.status}` : "Nothing submitted yet."}</p>
+              {lateAccess && <p className="d-muted">Late access: {lateAccess.status}</p>}
+              <div className="d-stack">
+                <button className="btn btn-primary" onClick={() => setSubmitOpen(true)}>{mySubmission ? "Resubmit project" : "Submit project"}</button>
+                <button className="btn" onClick={() => setLateOpen(true)}>Request late access</button>
+              </div>
+              <p className="d-muted d-small">Due Sunday 11:59 PM WAT.</p>
+            </section>
+
+            <section className="d-panel">
+              <div className="d-panel-head"><h2>Notes</h2><span className="d-muted">{saving || "Autosave"}</span></div>
+              <textarea aria-label="Personal notes" rows={8} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Quick notes, blockers, ideas..." />
+            </section>
+
+            <section className="d-panel">
+              <div className="d-panel-head"><h2>Scorecard</h2></div>
+              {scorecard?.score ? (
+                <div className="d-score-grid">
+                  {[["Projects", scorecard.score.projects],["Understanding", scorecard.score.understanding],["Discussion", scorecard.score.discussion],["Tasks", scorecard.score.weeklyTasks],["Collab", scorecard.score.collaboration]].map(([k, v]) => (
+                    <div key={k} className="d-score-item"><span>{k}</span><strong>{v}</strong></div>
+                  ))}
+                  <div className="d-score-item d-score-total"><span>Weighted</span><strong>{scorecard.score.weightedTotal}</strong></div>
+                </div>
+              ) : <p className="d-muted">Available after mentor review.</p>}
+            </section>
+          </aside>
+        </div>
       </div>
+
       {submitOpen && (
         <div className="drawer-backdrop" role="dialog" aria-modal="true" onClick={() => setSubmitOpen(false)}>
           <form className="drawer" onClick={(e) => e.stopPropagation()} onSubmit={submitProject}>
-            <div className="drawer-head"><div><span className="pill">GitHub Submission</span><h2 style={{ margin: ".5rem 0 0" }}>Week {activeWeekNum} project</h2></div><button type="button" className="btn" onClick={() => setSubmitOpen(false)}>Close</button></div>
+            <div className="drawer-head"><div><span className="pill">Submit</span><h2 style={{ margin: ".5rem 0 0" }}>Week {activeWeekNum} project</h2></div><button type="button" className="btn" onClick={() => setSubmitOpen(false)}>Close</button></div>
             <div className="grid" style={{ gap: ".75rem" }}>
               <label className="grid" style={{ gap: ".35rem" }}><span>GitHub repository URL</span><input required value={submitForm.githubUrl} onChange={(e)=>setSubmitForm({...submitForm,githubUrl:e.target.value})} placeholder="https://github.com/username/repo" /></label>
               <label className="grid" style={{ gap: ".35rem" }}><span>Live demo URL (optional)</span><input value={submitForm.liveUrl} onChange={(e)=>setSubmitForm({...submitForm,liveUrl:e.target.value})} placeholder="https://..." /></label>
-              <label className="grid" style={{ gap: ".35rem" }}><span>Approach explanation</span><textarea required rows={4} value={submitForm.approachNote} onChange={(e)=>setSubmitForm({...submitForm,approachNote:e.target.value})} /></label>
-              <label className="grid" style={{ gap: ".35rem" }}><span>AI / Vibe Coding reflection</span><textarea required rows={4} value={submitForm.aiReflectionNote} onChange={(e)=>setSubmitForm({...submitForm,aiReflectionNote:e.target.value})} /></label>
+              <label className="grid" style={{ gap: ".35rem" }}><span>Approach</span><textarea required rows={4} value={submitForm.approachNote} onChange={(e)=>setSubmitForm({...submitForm,approachNote:e.target.value})} /></label>
+              <label className="grid" style={{ gap: ".35rem" }}><span>AI reflection</span><textarea required rows={4} value={submitForm.aiReflectionNote} onChange={(e)=>setSubmitForm({...submitForm,aiReflectionNote:e.target.value})} /></label>
               <button className="btn btn-primary">Submit repository</button>
             </div>
           </form>
@@ -209,12 +258,12 @@ export default function DashboardPage() {
       {lateOpen && (
         <div className="drawer-backdrop" role="dialog" aria-modal="true" onClick={() => setLateOpen(false)}>
           <form className="drawer" onClick={(e) => e.stopPropagation()} onSubmit={requestLateAccess}>
-            <div className="drawer-head"><div><span className="pill">Late Access Request</span><h2 style={{ margin: ".5rem 0 0" }}>Week {activeWeekNum} cutoff</h2></div><button type="button" className="btn" onClick={() => setLateOpen(false)}>Close</button></div>
+            <div className="drawer-head"><div><span className="pill">Late access</span><h2 style={{ margin: ".5rem 0 0" }}>Week {activeWeekNum}</h2></div><button type="button" className="btn" onClick={() => setLateOpen(false)}>Close</button></div>
             <div className="grid" style={{ gap: ".75rem" }}>
-              <label className="grid" style={{ gap: ".35rem" }}><span>Why submission was missed/delayed</span><textarea required rows={4} value={lateForm.reason} onChange={(e)=>setLateForm({...lateForm,reason:e.target.value})} /></label>
-              <label className="grid" style={{ gap: ".35rem" }}><span>Current blockers/progress</span><textarea rows={3} value={lateForm.blockers} onChange={(e)=>setLateForm({...lateForm,blockers:e.target.value})} /></label>
+              <label className="grid" style={{ gap: ".35rem" }}><span>Reason</span><textarea required rows={4} value={lateForm.reason} onChange={(e)=>setLateForm({...lateForm,reason:e.target.value})} /></label>
+              <label className="grid" style={{ gap: ".35rem" }}><span>Blockers/progress</span><textarea rows={3} value={lateForm.blockers} onChange={(e)=>setLateForm({...lateForm,blockers:e.target.value})} /></label>
               <label className="grid" style={{ gap: ".35rem" }}><span>Requested until (WAT ISO, optional)</span><input value={lateForm.requestedUntilWat} onChange={(e)=>setLateForm({...lateForm,requestedUntilWat:e.target.value})} placeholder="2026-11-25T23:59:59+01:00" /></label>
-              <button className="btn btn-primary">Send request to mentor</button>
+              <button className="btn btn-primary">Send request</button>
             </div>
           </form>
         </div>

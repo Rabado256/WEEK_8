@@ -14,9 +14,9 @@ export default function ScratchpadPanel({ weekNumber, sandboxMode }) {
 
   if (sandboxMode !== "built-in") {
     return (
-      <section className="card">
-        <h2>Cloud starter</h2>
-        <p className="muted">Weeks 5–8 use 1-click cloud environments for framework and full-stack work.</p>
+      <section className="d-panel">
+        <div className="d-panel-head"><h2>Cloud starter</h2><span className="d-muted">Week {weekNumber}</span></div>
+        <p className="d-muted" style={{ marginTop: 0 }}>Use a cloud environment for framework/full-stack work.</p>
         <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
           <a className="btn btn-primary" href="https://stackblitz.com/fork/vitejs/vite/tree/main/packages/create-vite/template-react" target="_blank" rel="noreferrer">Open StackBlitz</a>
           <a className="btn" href="https://codesandbox.io/s/new" target="_blank" rel="noreferrer">Open CodeSandbox</a>
@@ -29,20 +29,20 @@ export default function ScratchpadPanel({ weekNumber, sandboxMode }) {
   const setValue = tab === "HTML" ? setHtml : tab === "CSS" ? setCss : setJs;
 
   return (
-    <section className="card">
-      <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
-        <div><h2 style={{ marginBottom: 0 }}>Scratchpad</h2><p className="muted" style={{ margin: 0 }}>Week {weekNumber} built-in HTML/CSS/JS sandbox.</p></div>
-        <button className="btn" onClick={() => setOpen((v) => !v)}>{open ? "Collapse" : "Open scratchpad"}</button>
+    <section className="d-panel">
+      <div className="d-panel-head">
+        <div><h2>Scratchpad</h2><p className="d-muted" style={{ margin: ".2rem 0 0" }}>Week {weekNumber} · HTML/CSS/JS</p></div>
+        <button className="btn" onClick={() => setOpen((v) => !v)}>{open ? "Collapse" : "Open"}</button>
       </div>
       {open && (
-        <div className="grid" style={{ marginTop: "1rem", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))" }}>
+        <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: ".75rem" }}>
           <div>
-            <div style={{ display: "flex", gap: ".5rem", marginBottom: ".5rem" }}>{["HTML","CSS","JS"].map((t) => <button key={t} className="btn" style={t===tab?{borderColor:"var(--accent)",color:"var(--accent)"}:undefined} onClick={() => setTab(t)}>{t}</button>)}</div>
-            <textarea aria-label={`${tab} editor`} value={value} onChange={(e) => setValue(e.target.value)} rows={14} style={{ fontFamily: "ui-monospace, monospace" }} />
+            <div style={{ display: "flex", gap: ".4rem", marginBottom: ".5rem" }}>{["HTML","CSS","JS"].map((t) => <button key={t} className="btn" style={t===tab?{borderColor:"var(--accent)",color:"var(--accent)",padding:".35rem .7rem"}:{padding:".35rem .7rem"}} onClick={() => setTab(t)}>{t}</button>)}</div>
+            <textarea aria-label={`${tab} editor`} value={value} onChange={(e) => setValue(e.target.value)} rows={14} style={{ fontFamily: "var(--mono, ui-monospace, monospace)", fontSize: ".82rem" }} />
           </div>
           <div>
-            <div className="muted" style={{ marginBottom: ".5rem" }}>Preview</div>
-            <iframe title="Scratchpad preview" sandbox="allow-scripts" srcDoc={srcDoc} style={{ width: "100%", minHeight: 320, border: "1px solid var(--border)", borderRadius: 8, background: "#fff" }} />
+            <div className="d-muted" style={{ marginBottom: ".5rem", fontFamily: "var(--mono, ui-monospace, monospace)", fontSize: ".72rem", textTransform: "uppercase", letterSpacing: ".08em" }}>Preview</div>
+            <iframe title="Scratchpad preview" sandbox="allow-scripts" srcDoc={srcDoc} style={{ width: "100%", minHeight: 320, border: "1px solid rgba(148,163,184,.12)", borderRadius: 12, background: "#fff" }} />
           </div>
         </div>
       )}

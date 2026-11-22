@@ -7,7 +7,7 @@ import { db, migrate, seed } from "./db.js";
 import { authRequired, requireRole, signSession } from "./auth.js";
 import { getWeekLockState } from "./scheduleWat.js";
 import { computeWeightedScore } from "./scoring.js";
-import curriculum from "../../client/src/data/curriculum.json" with { type: "json" };
+import curriculum from "./curriculum.json" with { type: "json" };
 
 const app = express();
 app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") || true }));

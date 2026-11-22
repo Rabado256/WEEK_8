@@ -1,0 +1,34 @@
+{
+  "programTitle": "Dev8 Full-Stack Mentorship Cohort",
+  "timezone": "Africa/Lagos",
+  "cutoffRule": "Sunday 23:59:59 WAT",
+  "totalWeeks": 8,
+  "scoringWeights": {
+    "projects": 0.40,
+    "understandingAndCodeQuality": 0.20,
+    "discussionAndParticipation": 0.15,
+    "weeklyTasks": 0.15,
+    "collaborationAndProfessionalism": 0.10
+  },
+  "weeks": [
+    {
+      "weekNumber": 1,
+      "title": "Semantic HTML5, Modern CSS & Responsive Layouts",
+      "sandboxMode": "built-in",
+      "outlineTopics": [
+        { "id": "w1-t1", "topic": "Semantic HTML5 Document Architecture & Accessibility", "researchKeywords": ["semantic HTML landmarks", "ARIA roles basics", "accessible forms"] },
+        { "id": "w1-t2", "topic": "CSS Box Model, Flexbox & CSS Grid Systems", "researchKeywords": ["CSS flexbox alignment", "CSS grid template areas", "fluid typography clamp()"] },
+        { "id": "w1-t3", "topic": "Git & GitHub Workflow + README Documentation", "researchKeywords": ["git branch commit push", "clean README structure", "GitHub Pages hosting"] }
+      ],
+      "projectBrief": {
+        "title": "Responsive Developer Portfolio & Manifesto Page",
+        "description": "Build a semantic, responsive developer landing/portfolio page from scratch using plain HTML and CSS. Document your layout decisions and AI usage in your README and submission notes.",
+        "acceptanceCriteria": [
+          "Uses semantic HTML landmarks (<header>, <main>, <section>, <footer>)",
+          "Responsive across mobile (375px) and desktop (1280px) viewports",
+          "Submitted via a valid GitHub repository URL before Sunday 11:59 PM WAT"
+        ]
+      }
+    }
+  ]
+}

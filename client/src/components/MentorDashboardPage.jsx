@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, clearSession, getSession } from "../utils/api";
+import ClarificationDrawer from "./ClarificationDrawer";
+import curriculum from "../data/curriculum.json";
 
 export default function MentorDashboardPage() {
   const nav = useNavigate();
@@ -10,6 +12,7 @@ export default function MentorDashboardPage() {
   const [submissions, setSubmissions] = useState([]);
   const [requests, setRequests] = useState([]);
   const [error, setError] = useState("");
+  const [clarifyOpen, setClarifyOpen] = useState(false);
 
   async function load() {
     const [w, o, s, r] = await Promise.all([api("/api/weeks"), api("/api/mentor/overview?week=1"), api("/api/mentor/submissions?week=1"), api("/api/mentor/late-access?week=1")]);
@@ -43,7 +46,7 @@ export default function MentorDashboardPage() {
     <main className="section"><div className="container grid" style={{ gap: "1rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
         <div><span className="pill">Mentor Workspace</span><h1>Cohort overview</h1><p className="muted">Roll-call, reviews, late access, and scoring controls will land in Phase 5-6.</p></div>
-        <div style={{ display: "flex", gap: ".5rem" }}><Link className="btn" to="/">Landing</Link><button className="btn" onClick={() => { clearSession(); nav("/login"); }}>Sign out</button></div>
+        <div style={{ display: "flex", gap: ".5rem" }}><button className="btn" onClick={() => setClarifyOpen(true)}>Clarifications</button><Link className="btn" to="/">Landing</Link><button className="btn" onClick={() => { clearSession(); nav("/login"); }}>Sign out</button></div>
       </div>
       {error && <div className="card" style={{ color: "var(--danger)" }}>{error}</div>}
       <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))" }}>
@@ -92,6 +95,7 @@ export default function MentorDashboardPage() {
         </div>
       </section>
       <section className="card"><h2>Week states</h2><div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))" }}>{weeks.map((w) => <div key={w.weekNumber} className="card" style={{ padding: ".75rem" }}><strong>Week {w.weekNumber}</strong><div className="muted" style={{ fontSize: ".85rem" }}>{w.state}</div></div>)}</div></section>
+      <ClarificationDrawer open={clarifyOpen} onClose={() => setClarifyOpen(false)} weekNumber={1} topics={curriculum.weeks[0]?.outlineTopics || []} role="MENTOR" />
     </div></main>
   );
 }

@@ -134,6 +134,85 @@ app.patch("/api/submissions/:id/review", authRequired, requireRole("MENTOR"), (r
   res.json({ ok: true });
 });
 
+app.get("/api/weeks/:weekNumber/clarifications", authRequired, (req, res) => {
+  const weekNumber = weekNum(req.params.weekNumber);
+  if (!weekNumber) return res.status(400).json({ error: "Invalid week" });
+  const base = `SELECT c.*, u.display_name FROM clarifications c JOIN users u ON u.id=c.user_id WHERE c.cohort_id=? AND c.week_number=?`;
+  const rows = req.user.role === "MENTOR"
+    ? db.prepare(`${base} ORDER BY c.updated_at DESC`).all(req.user.cohort_id, weekNumber)
+    : db.prepare(`${base} AND (c.user_id=? OR c.is_pinned_faq=1) ORDER BY c.updated_at DESC`).all(req.user.cohort_id, weekNumber, req.user.id);
+  res.json({ clarifications: rows });
+});
+
+app.post("/api/weeks/:weekNumber/clarifications", authRequired, requireRole("MENTEE"), (req, res) => {
+  const weekNumber = weekNum(req.params.weekNumber);
+  if (!weekNumber) return res.status(400).json({ error: "Invalid week" });
+  const topicId = String(req.body?.topicId || "").trim();
+  const whatITried = String(req.body?.whatITried || "").trim();
+  const question = String(req.body?.question || "").trim();
+  const codeSnippet = String(req.body?.codeSnippet || "").trim() || null;
+  if (!topicId || !whatITried || !question) return res.status(400).json({ error: "topicId, whatITried, and question required" });
+  const info = db.prepare("INSERT INTO clarifications (user_id, cohort_id, week_number, topic_id, what_i_tried, question, code_snippet) VALUES (?,?,?,?,?,?,?)")
+    .run(req.user.id, req.user.cohort_id, weekNumber, topicId, whatITried, question, codeSnippet);
+  res.status(201).json({ id: info.lastInsertRowid });
+});
+
+app.patch("/api/clarifications/:id/respond", authRequired, requireRole("MENTOR"), (req, res) => {
+  const status = ["answered", "follow_up_requested", "resolved"].includes(req.body?.status) ? req.body.status : null;
+  if (!status) return res.status(400).json({ error: "Invalid status" });
+  const mentorReply = String(req.body?.mentorReply || "").trim();
+  const isPinnedFaq = req.body?.isPinnedFaq ? 1 : 0;
+  const result = db.prepare("UPDATE clarifications SET status=?, mentor_reply=?, is_pinned_faq=?, updated_at=CURRENT_TIMESTAMP WHERE id=? AND cohort_id=?")
+    .run(status, mentorReply, isPinnedFaq, req.params.id, req.user.cohort_id);
+  if (!result.changes) return res.status(404).json({ error: "Clarification not found" });
+  res.json({ ok: true });
+});
+
+app.patch("/api/clarifications/:id/learner-reply", authRequired, requireRole("MENTEE"), (req, res) => {
+  const status = ["open", "resolved"].includes(req.body?.status) ? req.body.status : "open";
+  const learnerNote = String(req.body?.learnerNote || "").trim();
+  const result = db.prepare("UPDATE clarifications SET status=?, learner_followup_note=?, updated_at=CURRENT_TIMESTAMP WHERE id=? AND user_id=?")
+    .run(status, learnerNote, req.params.id, req.user.id);
+  if (!result.changes) return res.status(404).json({ error: "Clarification not found" });
+  res.json({ ok: true });
+});
+
+app.get("/api/weeks/:weekNumber/gallery", authRequired, (req, res) => {
+  const weekNumber = weekNum(req.params.weekNumber);
+  if (!weekNumber) return res.status(400).json({ error: "Invalid week" });
+  if (req.user.role === "MENTEE") {
+    const mine = db.prepare("SELECT id FROM submissions WHERE user_id=? AND week_number=?").get(req.user.id, weekNumber);
+    if (!mine) return res.status(403).json({ error: "Submit your Week project to unlock the peer gallery." });
+  }
+  const submissions = db.prepare(`
+    SELECT s.id, s.github_url, s.live_url, s.approach_note, s.status, u.display_name
+    FROM submissions s JOIN users u ON u.id=s.user_id
+    WHERE s.cohort_id=? AND s.week_number=? ORDER BY s.updated_at DESC`).all(req.user.cohort_id, weekNumber);
+  const reviews = db.prepare(`
+    SELECT pr.*, u.display_name AS reviewer_name FROM peer_reviews pr
+    JOIN users u ON u.id=pr.reviewer_id
+    WHERE pr.submission_id IN (SELECT id FROM submissions WHERE cohort_id=? AND week_number=?) ORDER BY pr.created_at DESC`).all(req.user.cohort_id, weekNumber);
+  res.json({ submissions, reviews });
+});
+
+app.post("/api/submissions/:id/peer-review", authRequired, requireRole("MENTEE"), (req, res) => {
+  const strengthNote = String(req.body?.strengthNote || "").trim();
+  const suggestionNote = String(req.body?.suggestionNote || "").trim();
+  if (!strengthNote || !suggestionNote) return res.status(400).json({ error: "strengthNote and suggestionNote required" });
+  const submission = db.prepare("SELECT * FROM submissions WHERE id=? AND cohort_id=?").get(req.params.id, req.user.cohort_id);
+  if (!submission) return res.status(404).json({ error: "Submission not found" });
+  if (submission.user_id === req.user.id) return res.status(400).json({ error: "Cannot review your own submission" });
+  const mine = db.prepare("SELECT id FROM submissions WHERE user_id=? AND week_number=?").get(req.user.id, submission.week_number);
+  if (!mine) return res.status(403).json({ error: "Submit your own project before reviewing peers" });
+  try {
+    db.prepare("INSERT INTO peer_reviews (submission_id, reviewer_id, strength_note, suggestion_note) VALUES (?,?,?,?)")
+      .run(submission.id, req.user.id, strengthNote, suggestionNote);
+    res.status(201).json({ ok: true });
+  } catch {
+    res.status(409).json({ error: "You already reviewed this submission" });
+  }
+});
+
 app.post("/api/weeks/:weekNumber/submit", authRequired, requireRole("MENTEE"), (req, res) => {
   const weekNumber = weekNum(req.params.weekNumber);
   if (!weekNumber) return res.status(400).json({ error: "Invalid week" });

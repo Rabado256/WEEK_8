@@ -5,6 +5,8 @@ import { formatWat } from "../utils/scheduleWat";
 import { api, clearSession, getSession } from "../utils/api";
 import WeekMapDrawer from "./WeekMapDrawer";
 import ScratchpadPanel from "./ScratchpadPanel";
+import ClarificationDrawer from "./ClarificationDrawer";
+import PeerGalleryDrawer from "./PeerGalleryDrawer";
 
 export default function DashboardPage() {
   const nav = useNavigate();
@@ -25,6 +27,8 @@ export default function DashboardPage() {
   const [lateForm, setLateForm] = useState({ reason: "", blockers: "", requestedUntilWat: "" });
   const [submitOpen, setSubmitOpen] = useState(false);
   const [lateOpen, setLateOpen] = useState(false);
+  const [clarifyOpen, setClarifyOpen] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   useEffect(() => {
     if (!session?.token) { nav("/login"); return; }
@@ -111,7 +115,7 @@ export default function DashboardPage() {
       <div className="container grid" style={{ gap: "1rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
           <div><span className="pill">Mentee Workspace</span><h1 style={{ marginBottom: 0 }}>Week {outline.weekNumber}: {outline.title}</h1><p className="muted">Current WAT: {now} · {saving}</p></div>
-          <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}><button className="btn" onClick={() => setMapOpen(true)}>Week Map</button><Link className="btn" to="/">Landing</Link><button className="btn" onClick={() => { clearSession(); nav("/login"); }}>Sign out</button></div>
+          <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}><button className="btn" onClick={() => setClarifyOpen(true)}>Clarifications</button><button className="btn" onClick={() => setGalleryOpen(true)}>Peer Gallery</button><button className="btn" onClick={() => setMapOpen(true)}>Week Map</button><Link className="btn" to="/">Landing</Link><button className="btn" onClick={() => { clearSession(); nav("/login"); }}>Sign out</button></div>
         </div>
         {error && <div className="card" style={{ color: "var(--danger)" }}>{error}</div>}
 
@@ -186,6 +190,8 @@ export default function DashboardPage() {
           </form>
         </div>
       )}
+      <ClarificationDrawer open={clarifyOpen} onClose={() => setClarifyOpen(false)} weekNumber={activeWeekNum} topics={outline.outlineTopics} role="MENTEE" />
+      <PeerGalleryDrawer open={galleryOpen} onClose={() => setGalleryOpen(false)} weekNumber={activeWeekNum} />
       <WeekMapDrawer open={mapOpen} onClose={() => setMapOpen(false)} weeks={weeks.length ? weeks : curriculum.weeks.map(w=>({...w,state:"locked_schedule"}))} activeWeek={outline.weekNumber} />
     </main>
   );

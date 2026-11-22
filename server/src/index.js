@@ -95,6 +95,45 @@ app.get("/api/weeks/:weekNumber/research-logs", authRequired, (req, res) => {
   res.json({ logs: rows });
 });
 
+app.get("/api/weeks/:weekNumber/submission/me", authRequired, (req, res) => {
+  const weekNumber = weekNum(req.params.weekNumber);
+  if (!weekNumber) return res.status(400).json({ error: "Invalid week" });
+  const submission = db.prepare("SELECT * FROM submissions WHERE user_id = ? AND week_number = ?").get(req.user.id, weekNumber);
+  const lateAccess = db.prepare("SELECT * FROM late_access_requests WHERE user_id = ? AND week_number = ?").get(req.user.id, weekNumber);
+  res.json({ submission, lateAccess });
+});
+
+app.get("/api/mentor/submissions", authRequired, requireRole("MENTOR"), (req, res) => {
+  const weekNumber = weekNum(req.query.week) || 1;
+  const rows = db.prepare(`
+    SELECT s.*, u.display_name,
+      (SELECT status FROM late_access_requests la WHERE la.user_id=s.user_id AND la.week_number=s.week_number) AS late_access_status
+    FROM submissions s JOIN users u ON u.id=s.user_id
+    WHERE s.cohort_id=? AND s.week_number=?
+    ORDER BY s.updated_at DESC`).all(req.user.cohort_id, weekNumber);
+  res.json({ submissions: rows });
+});
+
+app.get("/api/mentor/late-access", authRequired, requireRole("MENTOR"), (req, res) => {
+  const weekNumber = weekNum(req.query.week) || 1;
+  const rows = db.prepare(`
+    SELECT la.*, u.display_name FROM late_access_requests la
+    JOIN users u ON u.id=la.user_id
+    WHERE la.cohort_id=? AND la.week_number=?
+    ORDER BY la.updated_at DESC`).all(req.user.cohort_id, weekNumber);
+  res.json({ requests: rows });
+});
+
+app.patch("/api/submissions/:id/review", authRequired, requireRole("MENTOR"), (req, res) => {
+  const status = ["approved", "needs_revision", "follow_up_requested"].includes(req.body?.status) ? req.body.status : null;
+  if (!status) return res.status(400).json({ error: "Invalid status" });
+  const mentorFeedback = String(req.body?.mentorFeedback || "").trim();
+  const result = db.prepare("UPDATE submissions SET status=?, mentor_feedback=?, updated_at=CURRENT_TIMESTAMP WHERE id=? AND cohort_id=?")
+    .run(status, mentorFeedback, req.params.id, req.user.cohort_id);
+  if (!result.changes) return res.status(404).json({ error: "Submission not found" });
+  res.json({ ok: true });
+});
+
 app.post("/api/weeks/:weekNumber/submit", authRequired, requireRole("MENTEE"), (req, res) => {
   const weekNumber = weekNum(req.params.weekNumber);
   if (!weekNumber) return res.status(400).json({ error: "Invalid week" });
@@ -109,7 +148,7 @@ app.post("/api/weeks/:weekNumber/submit", authRequired, requireRole("MENTEE"), (
   const lateAccess = db.prepare("SELECT status, granted_until_wat FROM late_access_requests WHERE user_id = ? AND week_number = ?").get(req.user.id, weekNumber);
   const state = getWeekLockState({ now: new Date(), startMondayDate: cohort.start_monday_date, weekNumber, hasSubmission: !!existing, lateAccess, reviewStatus: existing?.status });
   const canSubmit = ["active_open", "late_access_granted"].includes(state) || ["needs_revision", "follow_up_requested"].includes(existing?.status);
-  if (!canSubmit) return res.status(403).json({ error: "Submission window closed for this week" });
+  if (!canSubmit) return res.status(403).json({ error: "Cutoff closed. Submit a late-access reason for mentor review." });
   const dup = db.prepare("SELECT id FROM submissions WHERE cohort_id = ? AND week_number = ? AND github_url = ? AND user_id <> ?").get(req.user.cohort_id, weekNumber, githubUrl, req.user.id);
   if (dup) return res.status(409).json({ error: "This GitHub repository URL has already been submitted in this cohort for this week. Every project must represent your own work." });
   if (existing) {
@@ -149,11 +188,12 @@ app.get("/api/mentor/overview", authRequired, requireRole("MENTOR"), (req, res) 
   const cohort = getCohort(req);
   const weekNumber = weekNum(req.query.week) || 1;
   const submitted = db.prepare("SELECT COUNT(*) c FROM submissions WHERE cohort_id=? AND week_number=?").get(req.user.cohort_id, weekNumber).c;
-  const followUps = db.prepare("SELECT COUNT(*) c FROM submissions WHERE cohort_id=? AND week_number=? AND status='follow_up_requested'").get(req.user.cohort_id, weekNumber).c;
+  const followUps = db.prepare("SELECT COUNT(*) c FROM submissions WHERE cohort_id=? AND week_number=? AND status IN ('follow_up_requested','needs_revision')").get(req.user.cohort_id, weekNumber).c;
   const openClarifications = db.prepare("SELECT COUNT(*) c FROM clarifications WHERE cohort_id=? AND week_number=? AND status IN ('open','follow_up_requested')").get(req.user.cohort_id, weekNumber).c;
   const lateAccess = db.prepare("SELECT COUNT(*) c FROM late_access_requests WHERE cohort_id=? AND week_number=? AND status IN ('pending','granted')").get(req.user.cohort_id, weekNumber).c;
+  const lockedPastCutoff = db.prepare("SELECT COUNT(*) c FROM users u WHERE u.cohort_id=? AND u.role='MENTEE' AND NOT EXISTS (SELECT 1 FROM submissions s WHERE s.user_id=u.id AND s.week_number=?)").get(req.user.cohort_id, weekNumber).c;
   const mentees = db.prepare("SELECT id, display_name FROM users WHERE cohort_id=? AND role='MENTEE' ORDER BY display_name").all(req.user.cohort_id);
-  res.json({ cohort: { startMondayDate: cohort.start_monday_date }, weekNumber, counts: { submitted, lateAccess, followUps, openClarifications }, mentees });
+  res.json({ cohort: { startMondayDate: cohort.start_monday_date }, weekNumber, counts: { submitted, lockedPastCutoff, lateAccess, followUps, openClarifications }, mentees });
 });
 
 const port = process.env.PORT || 4000;

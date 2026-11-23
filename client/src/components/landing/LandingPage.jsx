@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import content from "../../data/landingContent.json";
 import "../../styles/landing.css";

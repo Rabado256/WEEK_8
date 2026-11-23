@@ -4,15 +4,12 @@ import curriculum from "../data/curriculum.json";
 import { formatWat } from "../utils/scheduleWat";
 import { api, clearSession, getSession } from "../utils/api";
 import WeekMapDrawer from "./WeekMapDrawer";
-import ScratchpadPanel from "./ScratchpadPanel";
 import ClarificationDrawer from "./ClarificationDrawer";
 import PeerGalleryDrawer from "./PeerGalleryDrawer";
 import ProgramCharterDrawer from "./ProgramCharterDrawer";
 import { buildWeekNotesMarkdown, downloadMarkdown } from "../utils/exportMarkdown";
 
-function Stat({ label, value, hint }) {
-  return <div className="d-stat"><span className="d-stat-label">{label}</span><strong className="d-stat-value">{value}</strong>{hint && <span className="d-stat-hint">{hint}</span>}</div>;
-}
+const STAGES = ["Focus", "Research", "Notes", "Submit"];
 
 export default function DashboardPage() {
   const nav = useNavigate();
@@ -25,10 +22,7 @@ export default function DashboardPage() {
   const [activeWeekNum, setActiveWeekNum] = useState(null);
   const [notes, setNotes] = useState("");
   const [completed, setCompleted] = useState([]);
-  const [logs, setLogs] = useState([]);
-  const [logForm, setLogForm] = useState({ title: "", url: "", takeaway: "" });
   const [mySubmission, setMySubmission] = useState(null);
-  const [scorecard, setScorecard] = useState(null);
   const [lateAccess, setLateAccess] = useState(null);
   const [submitForm, setSubmitForm] = useState({ githubUrl: "", liveUrl: "", approachNote: "", aiReflectionNote: "" });
   const [lateForm, setLateForm] = useState({ reason: "", blockers: "", requestedUntilWat: "" });
@@ -61,14 +55,12 @@ export default function DashboardPage() {
       setNotes(w?.progress?.personalNotes || "");
       setCompleted(w?.progress?.completedTopicIds || []);
     });
-    api(`/api/weeks/${activeWeekNum}/research-logs`).then((d) => { if (!cancelled) setLogs(d.logs || []); }).catch(() => { if (!cancelled) setLogs([]); });
     api(`/api/weeks/${activeWeekNum}/submission/me`).then((d) => {
       if (cancelled) return;
       setMySubmission(d.submission || null);
       setLateAccess(d.lateAccess || null);
       if (d.submission) setSubmitForm({ githubUrl: d.submission.github_url || "", liveUrl: d.submission.live_url || "", approachNote: d.submission.approach_note || "", aiReflectionNote: d.submission.ai_reflection_note || "" });
     }).catch(() => {});
-    api("/api/scores/me").then((d) => { if (!cancelled) setScorecard(d); }).catch(() => {});
     return () => { cancelled = true; };
   }, [activeWeekNum, weeks]);
 
@@ -83,17 +75,6 @@ export default function DashboardPage() {
     }, 500);
     return () => clearTimeout(t);
   }, [notes, completed, activeWeekNum]);
-
-  async function addLog(e) {
-    e.preventDefault();
-    if (!activeWeekNum || !logForm.title.trim() || !logForm.takeaway.trim()) return;
-    try {
-      await api(`/api/weeks/${activeWeekNum}/research-logs`, { method: "POST", body: logForm });
-      setLogForm({ title: "", url: "", takeaway: "" });
-      const d = await api(`/api/weeks/${activeWeekNum}/research-logs`);
-      setLogs(d.logs || []);
-    } catch (err) { setError(err.message); }
-  }
 
   async function submitProject(e) {
     e.preventDefault();
@@ -123,25 +104,25 @@ export default function DashboardPage() {
     catch (e) { setError(e.message); } finally { setExporting(false); }
   }
 
-  const done = completed.length;
   const total = outline.outlineTopics.length;
+  const done = completed.length;
   const pct = total ? Math.round((done / total) * 100) : 0;
   const status = activeWeek?.state || "loading";
+  const stageIndex = mySubmission ? 3 : notes.trim() || done > 0 ? (done === total ? 2 : 1) : 0;
 
   return (
-    <main className="d-shell">
-      <div className="d-wrap">
-        <header className="d-topbar">
+    <main className="ds-shell">
+      <div className="ds-wrap">
+        <header className="ds-top">
           <div>
-            <div className="d-kicker"><span className="d-dot" />Mentee workspace</div>
-            <h1 className="d-title">Week {outline.weekNumber} <span className="d-title-muted">/ {outline.title}</span></h1>
-            <p className="d-meta">{now} WAT {saving && <span className="d-save">· {saving}</span>}</p>
+            <p className="ds-kicker"><span className="ds-kicker-dot" />Mentee workspace</p>
+            <h1 className="ds-title">Week {outline.weekNumber}<span className="ds-title-sub"> {outline.title}</span></h1>
+            <p className="ds-meta">{now} WAT <span className="ds-meta-sep">/</span> <span className="ds-meta-state">{status}</span>{saving ? <span className="ds-meta-save"> · {saving}</span> : null}</p>
           </div>
-          <div className="d-actions">
+          <div className="ds-top-actions">
             <button className="btn" onClick={() => setMapOpen(true)}>Week map</button>
             <button className="btn" onClick={() => setClarifyOpen(true)}>Clarify</button>
             <button className="btn" onClick={() => setGalleryOpen(true)}>Gallery</button>
-            <button className="btn btn-primary" onClick={() => setSubmitOpen(true)}>{mySubmission ? "Resubmit" : "Submit project"}</button>
             <details className="d-more">
               <summary className="btn">More</summary>
               <div className="d-more-menu card">
@@ -157,17 +138,35 @@ export default function DashboardPage() {
 
         {error && <div className="d-alert">{error}</div>}
 
-        <section className="d-stats">
-          <Stat label="Status" value={<span className="pill">{status}</span>} hint={mySubmission ? `Submission: ${mySubmission.status}` : "No submission yet"} />
-          <Stat label="Progress" value={`${pct}%`} hint={`${done}/${total} topics checked`} />
-          <Stat label="Research logs" value={logs.length} hint="What you found & learned" />
-          <Stat label="Score" value={scorecard?.score?.weightedTotal ?? "—"} hint={scorecard?.score ? "Weighted 5-pillar" : "Awaiting review"} />
-        </section>
+        <nav className="ds-rail" aria-label="Progress stages">
+          {STAGES.map((label, i) => (
+            <div key={label} className={`ds-rail-step ${i < stageIndex ? "is-done" : ""} ${i === stageIndex ? "is-current" : ""}`}>
+              <span className="ds-rail-num">0{i + 1}</span>
+              <span className="ds-rail-label">{label}</span>
+            </div>
+          ))}
+        </nav>
 
-        <div className="d-main">
-          <div className="d-col">
-            <section className="d-panel">
-              <div className="d-panel-head"><h2>Research checklist</h2><span className="d-muted">{done}/{total}</span></div>
+        <div className="ds-grid">
+          <section className="ds-stage">
+            <div className="ds-stage-head">
+              <span className="ds-stage-index">01</span>
+              <div><p className="ds-stage-kicker">Focus</p><h2>Project brief</h2></div>
+            </div>
+            <div className="ds-stage-body">
+              <h3 className="ds-brief-title">{outline.projectBrief.title}</h3>
+              <p className="ds-muted">{outline.projectBrief.description}</p>
+              <ul className="ds-list">{outline.projectBrief.acceptanceCriteria.map((c) => <li key={c}>{c}</li>)}</ul>
+            </div>
+          </section>
+
+          <section className="ds-stage">
+            <div className="ds-stage-head">
+              <span className="ds-stage-index">02</span>
+              <div><p className="ds-stage-kicker">Research</p><h2>Checklist</h2></div>
+              <span className="ds-stage-meta">{done}/{total} complete</span>
+            </div>
+            <div className="ds-stage-body">
               <div className="d-progress"><div style={{ width: `${pct}%` }} /></div>
               <div className="d-topic-list">
                 {outline.outlineTopics.map((t) => (
@@ -178,65 +177,34 @@ export default function DashboardPage() {
                   </label>
                 ))}
               </div>
-            </section>
+            </div>
+          </section>
 
-            <section className="d-panel">
-              <div className="d-panel-head"><h2>Project brief</h2><span className="pill">{outline.sandboxMode === "built-in" ? "Scratchpad" : "Cloud"}</span></div>
-              <p className="d-brief-title">{outline.projectBrief.title}</p>
-              <p className="d-muted">{outline.projectBrief.description}</p>
-              <ul className="d-criteria">{outline.projectBrief.acceptanceCriteria.map((c) => <li key={c}>{c}</li>)}</ul>
-            </section>
+          <section className="ds-stage">
+            <div className="ds-stage-head">
+              <span className="ds-stage-index">03</span>
+              <div><p className="ds-stage-kicker">Reflect</p><h2>Personal notes</h2></div>
+              <span className="ds-stage-meta">{saving || "Autosave"}</span>
+            </div>
+            <div className="ds-stage-body">
+              <textarea className="ds-notes" aria-label="Personal notes" rows={10} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Capture what you learned, blockers, and decisions..." />
+            </div>
+          </section>
 
-            <ScratchpadPanel weekNumber={outline.weekNumber} sandboxMode={outline.sandboxMode} />
-
-            <section className="d-panel">
-              <div className="d-panel-head"><h2>Research log</h2><span className="d-muted">Evidence of learning</span></div>
-              <form onSubmit={addLog} className="d-log-form">
-                <input value={logForm.title} onChange={(e) => setLogForm({ ...logForm, title: e.target.value })} placeholder="Resource title" required />
-                <input value={logForm.url} onChange={(e) => setLogForm({ ...logForm, url: e.target.value })} placeholder="URL (optional)" />
-                <textarea rows={2} value={logForm.takeaway} onChange={(e) => setLogForm({ ...logForm, takeaway: e.target.value })} placeholder="Key takeaway..." required />
-                <div><button className="btn btn-primary">Add log</button></div>
-              </form>
-              <div className="d-log-list">
-                {logs.length ? logs.map((l) => (
-                  <article key={l.id} className="d-log-item">
-                    <div className="d-log-top"><strong>{l.title}</strong>{l.url && <a href={l.url} target="_blank" rel="noreferrer">source ↗</a>}</div>
-                    <p className="d-muted">{l.takeaway}</p>
-                  </article>
-                )) : <p className="d-muted">No logs yet. Capture what you learned.</p>}
+          <section className="ds-stage ds-stage-submit">
+            <div className="ds-stage-head">
+              <span className="ds-stage-index">04</span>
+              <div><p className="ds-stage-kicker">Ship</p><h2>Submission</h2></div>
+              <span className={`ds-pill ${mySubmission ? "is-ok" : ""}`}>{mySubmission ? mySubmission.status : "Not submitted"}</span>
+            </div>
+            <div className="ds-stage-body ds-submit-body">
+              <div>
+                <p className="ds-muted" style={{ margin: 0 }}>Due Sunday 11:59 PM WAT. Submit your repository, approach, and AI reflection when ready.</p>
+                {lateAccess && <p className="ds-muted" style={{ margin: ".5rem 0 0" }}>Late access: {lateAccess.status}</p>}
               </div>
-            </section>
-          </div>
-
-          <aside className="d-col d-side">
-            <section className="d-panel">
-              <div className="d-panel-head"><h2>Submission</h2><span className={`d-status-dot ${mySubmission ? "ok" : ""}`} /></div>
-              <p className="d-muted" style={{ marginTop: 0 }}>{mySubmission ? `Status: ${mySubmission.status}` : "Nothing submitted yet."}</p>
-              {lateAccess && <p className="d-muted">Late access: {lateAccess.status}</p>}
-              <div className="d-stack">
-                <button className="btn btn-primary" onClick={() => setSubmitOpen(true)}>{mySubmission ? "Resubmit project" : "Submit project"}</button>
-                <button className="btn" onClick={() => setLateOpen(true)}>Request late access</button>
-              </div>
-              <p className="d-muted d-small">Due Sunday 11:59 PM WAT.</p>
-            </section>
-
-            <section className="d-panel">
-              <div className="d-panel-head"><h2>Notes</h2><span className="d-muted">{saving || "Autosave"}</span></div>
-              <textarea aria-label="Personal notes" rows={8} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Quick notes, blockers, ideas..." />
-            </section>
-
-            <section className="d-panel">
-              <div className="d-panel-head"><h2>Scorecard</h2></div>
-              {scorecard?.score ? (
-                <div className="d-score-grid">
-                  {[["Projects", scorecard.score.projects],["Understanding", scorecard.score.understanding],["Discussion", scorecard.score.discussion],["Tasks", scorecard.score.weeklyTasks],["Collab", scorecard.score.collaboration]].map(([k, v]) => (
-                    <div key={k} className="d-score-item"><span>{k}</span><strong>{v}</strong></div>
-                  ))}
-                  <div className="d-score-item d-score-total"><span>Weighted</span><strong>{scorecard.score.weightedTotal}</strong></div>
-                </div>
-              ) : <p className="d-muted">Available after mentor review.</p>}
-            </section>
-          </aside>
+              <button className="btn btn-primary ds-submit-btn" onClick={() => setSubmitOpen(true)}>{mySubmission ? "Resubmit project" : "Submit project"}</button>
+            </div>
+          </section>
         </div>
       </div>
 

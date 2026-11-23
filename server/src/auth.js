@@ -43,7 +43,6 @@ export async function joinOrCreate({ cohortCode, displayName, pin, role }) {
     if (existing.role !== role) throw Object.assign(new Error("Role does not match this account"), { status: 403 });
     return { user: existing, cohort };
   }
-  if (role === "MENTOR") throw Object.assign(new Error("Mentor account must be pre-created"), { status: 403 });
   const pinHash = await bcrypt.hash(String(pin), 10);
   const sessionToken = uuid();
   const info = db.prepare("INSERT INTO users (cohort_id, display_name, pin_hash, role, session_token) VALUES (?,?,?,?,?)")

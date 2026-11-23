@@ -36,7 +36,6 @@ app.post("/api/auth/join", async (req, res) => {
       if (!ok) return res.status(401).json({ error: "Invalid PIN" });
       if (user.role !== role) return res.status(403).json({ error: "Role does not match this account" });
     } else {
-      if (role === "MENTOR") return res.status(403).json({ error: "Mentor account must be pre-created" });
       const pinHash = await bcrypt.hash(pin, 10);
       const sessionToken = uuid();
       const info = db.prepare("INSERT INTO users (cohort_id, display_name, pin_hash, role, session_token) VALUES (?,?,?,?,?)").run(cohort.id, displayName, pinHash, role, sessionToken);

@@ -25,7 +25,10 @@ export default function SiteHeader() {
               <button className="btn site-btn" onClick={() => { clearSession(); nav("/login"); }}>Sign out</button>
             </>
           ) : (
-            <Link className="btn btn-primary site-btn" to="/login">Sign in</Link>
+            <>
+              <Link className="btn btn-primary site-btn" to="/login" state={{ mode: "signup" }}>Sign up</Link>
+              <Link className="btn site-btn" to="/login" state={{ mode: "login" }}>Login</Link>
+            </>
           )}
         </div>
       </div>

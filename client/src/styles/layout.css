@@ -191,3 +191,6 @@ strong { color: var(--text); }
 @media (max-width: 640px) { .site-nav { margin-left: 0; margin-right: 0; } }
 .site-nav a { white-space: nowrap; }
 @media (max-width: 920px) { .site-nav a[href*="#"] { display: none; } }
+.auth-mode { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; margin-top: 1.25rem; padding: .25rem; border-radius: 12px; background: rgba(148,163,184,.06); border: 1px solid rgba(148,163,184,.08); }
+.auth-mode button { border: 0; background: transparent; color: var(--muted); padding: .65rem .75rem; border-radius: 9px; font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; }
+.auth-mode button.is-active { background: rgba(16,185,129,.14); color: var(--text); box-shadow: inset 0 0 0 1px rgba(16,185,129,.2); }

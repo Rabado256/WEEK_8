@@ -189,3 +189,5 @@ strong { color: var(--text); }
 .site-header-inner { position: relative; }
 .site-nav { margin-left: auto; margin-right: .75rem; }
 @media (max-width: 640px) { .site-nav { margin-left: 0; margin-right: 0; } }
+.site-nav a { white-space: nowrap; }
+@media (max-width: 920px) { .site-nav a[href*="#"] { display: none; } }

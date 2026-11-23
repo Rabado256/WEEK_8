@@ -13,6 +13,10 @@ export default function SiteHeader() {
         <Link className="brand" to="/">Dev8</Link>
         <nav className="site-nav" aria-label="Primary">
           <Link to="/" className={loc.pathname === "/" ? "is-active" : ""}>Home</Link>
+          <a href="/#mentorship">Mentorship</a>
+          <a href="/#how-it-works">How It Works</a>
+          <a href="/#why-us">Why Us</a>
+          <a href="/#stories">Outcomes</a>
         </nav>
         <div className="site-header-actions">
           {authed ? (

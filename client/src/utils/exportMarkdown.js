@@ -11,16 +11,15 @@ export function buildWeekNotesMarkdown(data) {
   lines.push(`- **Cohort:** ${safe(data.cohortCode)}`);
   lines.push(`- **Generated:** ${new Date().toISOString()}`);
   lines.push("");
-  lines.push(`## 5-Pillar Growth Summary`);
+  lines.push(`## Growth Summary`);
   lines.push("");
   const s = data.score || {};
   lines.push(`| Pillar | Weight | Score |`);
   lines.push(`|---|---:|---:|`);
-  lines.push(`| Projects | 40% | ${s.projects ?? 0} |`);
-  lines.push(`| Understanding & Code Quality | 20% | ${s.understanding ?? 0} |`);
+  lines.push(`| Projects | 45% | ${s.projects ?? 0} |`);
+  lines.push(`| Understanding & Code Quality | 25% | ${s.understanding ?? 0} |`);
   lines.push(`| Discussion & Participation | 15% | ${s.discussion ?? 0} |`);
   lines.push(`| Weekly Tasks | 15% | ${s.weeklyTasks ?? 0} |`);
-  lines.push(`| Collaboration & Professionalism | 10% | ${s.collaboration ?? 0} |`);
   lines.push(`| **Weighted Total** | **100%** | **${s.weightedTotal ?? 0}** |`);
   lines.push("");
   if (s.mentorSummary) { lines.push(`**Mentor summary:** ${safe(s.mentorSummary)}`); lines.push(""); }

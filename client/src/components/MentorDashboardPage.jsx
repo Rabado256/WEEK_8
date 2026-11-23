@@ -13,7 +13,7 @@ export default function MentorDashboardPage() {
   const [requests, setRequests] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [scoreUser, setScoreUser] = useState("");
-  const [scoreForm, setScoreForm] = useState({ projects: 0, understanding: 0, discussion: 0, weeklyTasks: 0, collaboration: 0, mentorSummary: "" });
+  const [scoreForm, setScoreForm] = useState({ projects: 0, understanding: 0, discussion: 0, weeklyTasks: 0, mentorSummary: "" });
   const [error, setError] = useState("");
   const [clarifyOpen, setClarifyOpen] = useState(false);
 
@@ -129,11 +129,11 @@ export default function MentorDashboardPage() {
       </section>
 
       <section className="ws-card">
-        <h2>5-pillar scoring</h2>
+        <h2>Scoring</h2>
         <form onSubmit={saveScore} className="grid" style={{ gap: ".75rem" }}>
           <label className="grid" style={{ gap: ".35rem" }}><span>Mentee</span><select value={scoreUser} onChange={(e)=>setScoreUser(e.target.value)}>{overview?.mentees?.map((m)=><option key={m.id} value={m.id}>{m.display_name}</option>)}</select></label>
           <div className="grid" style={{ gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))", gap:".75rem" }}>
-            {[["projects","Projects 40%"],["understanding","Understanding 20%"],["discussion","Discussion 15%"],["weeklyTasks","Weekly Tasks 15%"],["collaboration","Collaboration 10%"]].map(([k,label])=>(
+            {[["projects","Projects 45%"],["understanding","Understanding 25%"],["discussion","Discussion 15%"],["weeklyTasks","Weekly Tasks 15%"]].map(([k,label])=>(
               <label key={k} className="grid" style={{ gap: ".35rem" }}><span>{label}</span><input type="number" min="0" max="100" value={scoreForm[k]} onChange={(e)=>setScoreForm({...scoreForm,[k]:Number(e.target.value)})} /></label>
             ))}
           </div>

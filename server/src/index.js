@@ -262,10 +262,10 @@ app.put("/api/mentees/:userId/scores", authRequired, requireRole("MENTOR"), (req
   if (!mentee) return res.status(404).json({ error: "Mentee not found" });
   const score = computeWeightedScore(req.body || {});
   const mentorSummary = String(req.body?.mentorSummary || "").trim();
-  db.prepare(`INSERT INTO rubric_scores (user_id, projects_score, understanding_score, discussion_score, weekly_tasks_score, collaboration_score, mentor_summary, updated_at)
-    VALUES (?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
-    ON CONFLICT(user_id) DO UPDATE SET projects_score=excluded.projects_score, understanding_score=excluded.understanding_score, discussion_score=excluded.discussion_score, weekly_tasks_score=excluded.weekly_tasks_score, collaboration_score=excluded.collaboration_score, mentor_summary=excluded.mentor_summary, updated_at=CURRENT_TIMESTAMP`)
-    .run(userId, score.projects, score.understanding, score.discussion, score.weeklyTasks, score.collaboration, mentorSummary);
+  db.prepare(`INSERT INTO rubric_scores (user_id, projects_score, understanding_score, discussion_score, weekly_tasks_score, mentor_summary, updated_at)
+    VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP)
+    ON CONFLICT(user_id) DO UPDATE SET projects_score=excluded.projects_score, understanding_score=excluded.understanding_score, discussion_score=excluded.discussion_score, weekly_tasks_score=excluded.weekly_tasks_score, mentor_summary=excluded.mentor_summary, updated_at=CURRENT_TIMESTAMP`)
+    .run(userId, score.projects, score.understanding, score.discussion, score.weeklyTasks, mentorSummary);
   res.json({ ok: true, score: { ...score, mentorSummary } });
 });
 

@@ -1,9 +1,8 @@
 export const WEIGHTS = {
-  projects: 0.4,
-  understanding: 0.2,
+  projects: 0.45,
+  understanding: 0.25,
   discussion: 0.15,
   weeklyTasks: 0.15,
-  collaboration: 0.1,
 };
 
 export function clampScore(value) {
@@ -17,7 +16,6 @@ export function computeWeightedScore(scores = {}) {
   const u = clampScore(scores.understanding);
   const d = clampScore(scores.discussion);
   const t = clampScore(scores.weeklyTasks);
-  const c = clampScore(scores.collaboration);
-  const total = p * WEIGHTS.projects + u * WEIGHTS.understanding + d * WEIGHTS.discussion + t * WEIGHTS.weeklyTasks + c * WEIGHTS.collaboration;
-  return { projects: p, understanding: u, discussion: d, weeklyTasks: t, collaboration: c, total: Math.round(total * 100) / 100 };
+  const total = p * WEIGHTS.projects + u * WEIGHTS.understanding + d * WEIGHTS.discussion + t * WEIGHTS.weeklyTasks;
+  return { projects: p, understanding: u, discussion: d, weeklyTasks: t, total: Math.round(total * 100) / 100 };
 }

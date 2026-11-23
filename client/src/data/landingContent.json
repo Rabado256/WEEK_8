@@ -20,7 +20,7 @@
   "whyUs": [
     { "title": "Ship real repos", "detail": "Progress is earned through GitHub submissions." },
     { "title": "Honest AI use", "detail": "Use AI to learn — never to fake the work." },
-    { "title": "Clear scoring", "detail": "A transparent 5-pillar growth scorecard." }
+    { "title": "Clear scoring", "detail": "A transparent growth scorecard." }
   ],
   "successStories": [
     { "name": "Linear-style Landing", "outcome": "Clean layout, sharp typography, and strong visual hierarchy.", "link": "https://github.com/linear", "site": "linear.app", "image": "/images/proof-linear.png" },

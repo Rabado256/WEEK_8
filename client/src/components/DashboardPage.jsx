@@ -140,24 +140,13 @@ export default function DashboardPage() {
           <section className="ws-card">
             <header className="ws-card-head">
               <div className="ws-step"><span>03</span><div><p className="ws-kicker">Build</p><h2>Project brief</h2></div></div>
+              <span className={`ds-pill ${mySubmission ? "is-ok" : ""}`}>{mySubmission ? mySubmission.status : "Not submitted"}</span>
             </header>
             <h3 className="ds-brief-title">{outline.projectBrief.title}</h3>
             <p className="ds-muted">{outline.projectBrief.description}</p>
             <ul className="ds-list">{outline.projectBrief.acceptanceCriteria.map((c) => <li key={c}>{c}</li>)}</ul>
-          </section>
-
-          <section className="ws-card ws-card-submit">
-            <header className="ws-card-head">
-              <div className="ws-step"><span>04</span><div><p className="ws-kicker">Ship</p><h2>Submission</h2></div></div>
-              <span className={`ds-pill ${mySubmission ? "is-ok" : ""}`}>{mySubmission ? mySubmission.status : "Not submitted"}</span>
-            </header>
-            <div className="ds-submit-body">
-              <div>
-                <p className="ds-muted" style={{ margin: 0 }}>
-                  {pastCutoff ? "The WAT cutoff has passed for this week." : "Due Sunday 11:59 PM WAT. Submit your repository, approach, and AI reflection."}
-                </p>
-                {lateAccess && <p className="ds-muted" style={{ margin: ".5rem 0 0" }}>Late access: {lateAccess.status}</p>}
-              </div>
+            <div className="ws-brief-footer">
+              <p className="ds-muted ws-brief-note">{pastCutoff ? "WAT cutoff passed." : "Due Sunday 11:59 PM WAT."}{lateAccess ? ` Late access: ${lateAccess.status}.` : ""}</p>
               {canLateRequest ? (
                 <button className="btn btn-primary ds-submit-btn" onClick={() => setLateOpen(true)}>Request late submission</button>
               ) : (

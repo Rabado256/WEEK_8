@@ -9,7 +9,7 @@ import PeerGalleryDrawer from "./PeerGalleryDrawer";
 import ProgramCharterDrawer from "./ProgramCharterDrawer";
 import { buildWeekNotesMarkdown, downloadMarkdown } from "../utils/exportMarkdown";
 
-const STAGES = ["Focus", "Research", "Notes", "Submit"];
+const STAGES = ["Research", "Notes", "Brief", "Submit"];
 
 export default function DashboardPage() {
   const nav = useNavigate();
@@ -108,7 +108,7 @@ export default function DashboardPage() {
   const done = completed.length;
   const pct = total ? Math.round((done / total) * 100) : 0;
   const status = activeWeek?.state || "loading";
-  const stageIndex = mySubmission ? 3 : notes.trim() || done > 0 ? (done === total ? 2 : 1) : 0;
+  const stageIndex = mySubmission ? 3 : notes.trim() ? 2 : done > 0 ? 1 : 0;
 
   return (
     <main className="ds-shell">
@@ -151,18 +151,6 @@ export default function DashboardPage() {
           <section className="ds-stage">
             <div className="ds-stage-head">
               <span className="ds-stage-index">01</span>
-              <div><p className="ds-stage-kicker">Focus</p><h2>Project brief</h2></div>
-            </div>
-            <div className="ds-stage-body">
-              <h3 className="ds-brief-title">{outline.projectBrief.title}</h3>
-              <p className="ds-muted">{outline.projectBrief.description}</p>
-              <ul className="ds-list">{outline.projectBrief.acceptanceCriteria.map((c) => <li key={c}>{c}</li>)}</ul>
-            </div>
-          </section>
-
-          <section className="ds-stage">
-            <div className="ds-stage-head">
-              <span className="ds-stage-index">02</span>
               <div><p className="ds-stage-kicker">Research</p><h2>Checklist</h2></div>
               <span className="ds-stage-meta">{done}/{total} complete</span>
             </div>
@@ -182,12 +170,24 @@ export default function DashboardPage() {
 
           <section className="ds-stage">
             <div className="ds-stage-head">
-              <span className="ds-stage-index">03</span>
+              <span className="ds-stage-index">02</span>
               <div><p className="ds-stage-kicker">Reflect</p><h2>Personal notes</h2></div>
               <span className="ds-stage-meta">{saving || "Autosave"}</span>
             </div>
             <div className="ds-stage-body">
               <textarea className="ds-notes" aria-label="Personal notes" rows={10} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Capture what you learned, blockers, and decisions..." />
+            </div>
+          </section>
+
+          <section className="ds-stage">
+            <div className="ds-stage-head">
+              <span className="ds-stage-index">03</span>
+              <div><p className="ds-stage-kicker">Focus</p><h2>Project brief</h2></div>
+            </div>
+            <div className="ds-stage-body">
+              <h3 className="ds-brief-title">{outline.projectBrief.title}</h3>
+              <p className="ds-muted">{outline.projectBrief.description}</p>
+              <ul className="ds-list">{outline.projectBrief.acceptanceCriteria.map((c) => <li key={c}>{c}</li>)}</ul>
             </div>
           </section>
 

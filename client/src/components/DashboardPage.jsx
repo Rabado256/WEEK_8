@@ -9,7 +9,7 @@ import PeerGalleryDrawer from "./PeerGalleryDrawer";
 import ProgramCharterDrawer from "./ProgramCharterDrawer";
 import { buildWeekNotesMarkdown, downloadMarkdown } from "../utils/exportMarkdown";
 
-const STAGES = ["Research", "Notes", "Brief", "Submit"];
+
 
 export default function DashboardPage() {
   const nav = useNavigate();
@@ -108,7 +108,7 @@ export default function DashboardPage() {
   const done = completed.length;
   const pct = total ? Math.round((done / total) * 100) : 0;
   const status = activeWeek?.state || "loading";
-  const stageIndex = mySubmission ? 3 : notes.trim() ? 2 : done > 0 ? 1 : 0;
+
 
   return (
     <main className="ds-shell">
@@ -138,14 +138,7 @@ export default function DashboardPage() {
 
         {error && <div className="d-alert">{error}</div>}
 
-        <nav className="ds-rail" aria-label="Progress stages">
-          {STAGES.map((label, i) => (
-            <div key={label} className={`ds-rail-step ${i < stageIndex ? "is-done" : ""} ${i === stageIndex ? "is-current" : ""}`}>
-              <span className="ds-rail-num">0{i + 1}</span>
-              <span className="ds-rail-label">{label}</span>
-            </div>
-          ))}
-        </nav>
+
 
         <div className="ds-grid">
           <section className="ds-stage">

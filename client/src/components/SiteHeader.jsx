@@ -6,8 +6,6 @@ export default function SiteHeader() {
   const loc = useLocation();
   const session = getSession();
   const authed = !!session?.token;
-  const role = session?.user?.role;
-  const home = role === "MENTOR" ? "/mentor" : "/dashboard";
 
   return (
     <header className="site-header">
@@ -15,7 +13,6 @@ export default function SiteHeader() {
         <Link className="brand" to="/">Dev8</Link>
         <nav className="site-nav" aria-label="Primary">
           <Link to="/" className={loc.pathname === "/" ? "is-active" : ""}>Home</Link>
-          {authed && <Link to={home} className={loc.pathname === home ? "is-active" : ""}>Workspace</Link>}
         </nav>
         <div className="site-header-actions">
           {authed ? (

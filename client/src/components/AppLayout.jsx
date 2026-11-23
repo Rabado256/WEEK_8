@@ -1,7 +1,12 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import SiteHeader from "./SiteHeader";
 import SiteFooter from "./SiteFooter";
 
 export default function AppLayout({ children }) {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+
   return (
     <div className="app-shell">
       <SiteHeader />

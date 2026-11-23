@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { api, clearSession, getSession } from "../utils/api";
+import { useNavigate } from "react-router-dom";
+import { api, getSession } from "../utils/api";
 import ClarificationDrawer from "./ClarificationDrawer";
-import ProgramCharterDrawer from "./ProgramCharterDrawer";
 import curriculum from "../data/curriculum.json";
 
 export default function MentorDashboardPage() {
@@ -17,7 +16,6 @@ export default function MentorDashboardPage() {
   const [scoreForm, setScoreForm] = useState({ projects: 0, understanding: 0, discussion: 0, weeklyTasks: 0, collaboration: 0, mentorSummary: "" });
   const [error, setError] = useState("");
   const [clarifyOpen, setClarifyOpen] = useState(false);
-  const [charterOpen, setCharterOpen] = useState(false);
 
   async function load() {
     const [w, o, s, r, a] = await Promise.all([api("/api/weeks"), api("/api/mentor/overview?week=1"), api("/api/mentor/submissions?week=1"), api("/api/mentor/late-access?week=1"), api("/api/weeks/1/attendance")]);
@@ -60,12 +58,16 @@ export default function MentorDashboardPage() {
   }
 
   return (
-    <main className="section"><div className="container grid" style={{ gap: "1rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
-        <div><span className="pill">Mentor Workspace</span><h1>Cohort overview</h1><p className="muted">Roll-call, reviews, late access, and scoring controls will land in Phase 5-6.</p></div>
-        <div style={{ display: "flex", gap: ".5rem" }}><button className="btn" onClick={() => setCharterOpen(true)}>Charter</button><button className="btn" onClick={() => setClarifyOpen(true)}>Clarifications</button><Link className="btn" to="/">Landing</Link><button className="btn" onClick={() => { clearSession(); nav("/login"); }}>Sign out</button></div>
-      </div>
-      {error && <div className="card" style={{ color: "var(--danger)" }}>{error}</div>}
+    <main className="ws-page"><div className="container ws-container">
+      <section className="ws-hero">
+        <div>
+          <p className="ws-eyebrow"><span />Mentor workspace</p>
+          <h1 className="ws-title">Cohort<span> overview</span></h1>
+          <p className="ws-sub">Week 1 operations <span className="ws-sep">•</span> <span className="ws-status">live</span></p>
+        </div>
+        <button className="btn ws-ghost" onClick={() => setClarifyOpen(true)}>Clarifications</button>
+      </section>
+      {error && <div className="d-alert">{error}</div>}
       <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))" }}>
         {[
           ["Submitted", overview?.counts?.submitted ?? 0],
@@ -73,14 +75,14 @@ export default function MentorDashboardPage() {
           ["Late Access", overview?.counts?.lateAccess ?? 0],
           ["Follow-Ups", overview?.counts?.followUps ?? 0],
           ["Open Clarifications", overview?.counts?.openClarifications ?? 0],
-        ].map(([k, v]) => <div key={k} className="card"><div className="muted">{k}</div><strong style={{ fontSize: "1.5rem" }}>{v}</strong></div>)}
+        ].map(([k, v]) => <div key={k} className="ws-metric"><div className="muted">{k}</div><strong>{v}</strong></div>)}
       </div>
 
-      <section className="card">
+      <section className="ws-card">
         <h2>Week 1 submissions</h2>
         <div className="grid" style={{ gap: ".75rem" }}>
           {submissions.length ? submissions.map((s) => (
-            <article key={s.id} className="card" style={{ padding: "1rem" }}>
+            <article key={s.id} className="ws-subcard">
               <div style={{ display:"flex", justifyContent:"space-between", gap:".75rem", flexWrap:"wrap" }}>
                 <div><strong>{s.display_name}</strong> <span className="pill">{s.status}</span><div><a href={s.github_url} target="_blank" rel="noreferrer">{s.github_url}</a></div></div>
                 <div style={{ display:"flex", gap:".5rem", flexWrap:"wrap" }}>
@@ -95,11 +97,11 @@ export default function MentorDashboardPage() {
         </div>
       </section>
 
-      <section className="card">
+      <section className="ws-card">
         <h2>Late-access requests</h2>
         <div className="grid" style={{ gap: ".75rem" }}>
           {requests.length ? requests.map((r) => (
-            <article key={r.id} className="card" style={{ padding: "1rem" }}>
+            <article key={r.id} className="ws-subcard">
               <div style={{ display:"flex", justifyContent:"space-between", gap:".75rem", flexWrap:"wrap" }}>
                 <div><strong>{r.display_name}</strong> <span className="pill">{r.status}</span><div className="muted">{r.reason}</div></div>
                 <div style={{ display:"flex", gap:".5rem", flexWrap:"wrap" }}>
@@ -112,11 +114,11 @@ export default function MentorDashboardPage() {
         </div>
       </section>
 
-      <section className="card">
+      <section className="ws-card">
         <h2>Week 1 roll-call attendance</h2>
         <div className="grid" style={{ gap: ".5rem" }}>
           {attendance.map((a) => (
-            <div key={a.user_id} className="card" style={{ padding: ".75rem", display:"flex", justifyContent:"space-between", gap:".75rem", alignItems:"center", flexWrap:"wrap" }}>
+            <div key={a.user_id} className="ws-subcard ws-subcard-row">
               <div><strong>{a.display_name}</strong> <span className="pill">{a.status}</span></div>
               <div style={{ display:"flex", gap:".5rem", flexWrap:"wrap" }}>
                 {["present","absent","excused"].map((s)=><button key={s} className="btn" onClick={()=>setAttendanceStatus(a.user_id,s)}>{s}</button>)}
@@ -126,7 +128,7 @@ export default function MentorDashboardPage() {
         </div>
       </section>
 
-      <section className="card">
+      <section className="ws-card">
         <h2>5-pillar scoring</h2>
         <form onSubmit={saveScore} className="grid" style={{ gap: ".75rem" }}>
           <label className="grid" style={{ gap: ".35rem" }}><span>Mentee</span><select value={scoreUser} onChange={(e)=>setScoreUser(e.target.value)}>{overview?.mentees?.map((m)=><option key={m.id} value={m.id}>{m.display_name}</option>)}</select></label>
@@ -139,9 +141,8 @@ export default function MentorDashboardPage() {
           <div><button className="btn btn-primary">Save score</button></div>
         </form>
       </section>
-      <section className="card"><h2>Week states</h2><div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))" }}>{weeks.map((w) => <div key={w.weekNumber} className="card" style={{ padding: ".75rem" }}><strong>Week {w.weekNumber}</strong><div className="muted" style={{ fontSize: ".85rem" }}>{w.state}</div></div>)}</div></section>
+      <section className="ws-card"><h2>Week states</h2><div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))" }}>{weeks.map((w) => <div key={w.weekNumber} className="card" style={{ padding: ".75rem" }}><strong>Week {w.weekNumber}</strong><div className="muted" style={{ fontSize: ".85rem" }}>{w.state}</div></div>)}</div></section>
       <ClarificationDrawer open={clarifyOpen} onClose={() => setClarifyOpen(false)} weekNumber={1} topics={curriculum.weeks[0]?.outlineTopics || []} role="MENTOR" />
-      <ProgramCharterDrawer open={charterOpen} onClose={() => setCharterOpen(false)} />
     </div></main>
   );
 }

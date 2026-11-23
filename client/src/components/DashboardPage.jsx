@@ -1,15 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import curriculum from "../data/curriculum.json";
 import { formatWat } from "../utils/scheduleWat";
-import { api, clearSession, getSession } from "../utils/api";
-import WeekMapDrawer from "./WeekMapDrawer";
+import { api, getSession } from "../utils/api";
 import ClarificationDrawer from "./ClarificationDrawer";
-import PeerGalleryDrawer from "./PeerGalleryDrawer";
-import ProgramCharterDrawer from "./ProgramCharterDrawer";
-import { buildWeekNotesMarkdown, downloadMarkdown } from "../utils/exportMarkdown";
-
-
 
 export default function DashboardPage() {
   const nav = useNavigate();
@@ -17,7 +11,6 @@ export default function DashboardPage() {
   const [weeks, setWeeks] = useState([]);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState("");
-  const [mapOpen, setMapOpen] = useState(false);
   const [now] = useState(() => formatWat(new Date()));
   const [activeWeekNum, setActiveWeekNum] = useState(null);
   const [notes, setNotes] = useState("");
@@ -29,9 +22,6 @@ export default function DashboardPage() {
   const [submitOpen, setSubmitOpen] = useState(false);
   const [lateOpen, setLateOpen] = useState(false);
   const [clarifyOpen, setClarifyOpen] = useState(false);
-  const [galleryOpen, setGalleryOpen] = useState(false);
-  const [charterOpen, setCharterOpen] = useState(false);
-  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (!session?.token) { nav("/login"); return; }
@@ -99,103 +89,80 @@ export default function DashboardPage() {
   }
 
   function toggleTopic(id) { setCompleted((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]); }
-  async function exportNotes() {
-    try { setExporting(true); const data = await api("/api/export/me"); downloadMarkdown("dev8-week-notes.md", buildWeekNotesMarkdown(data)); }
-    catch (e) { setError(e.message); } finally { setExporting(false); }
-  }
 
   const total = outline.outlineTopics.length;
   const done = completed.length;
   const pct = total ? Math.round((done / total) * 100) : 0;
   const status = activeWeek?.state || "loading";
-
+  const pastCutoff = status === "closed_cutoff";
+  const canLateRequest = pastCutoff && lateAccess?.status !== "granted";
 
   return (
-    <main className="ds-shell">
-      <div className="ds-wrap">
-        <header className="ds-top">
+    <main className="ws-page">
+      <div className="container ws-container">
+        <section className="ws-hero">
           <div>
-            <p className="ds-kicker"><span className="ds-kicker-dot" />Mentee workspace</p>
-            <h1 className="ds-title">Week {outline.weekNumber}<span className="ds-title-sub"> {outline.title}</span></h1>
-            <p className="ds-meta">{now} WAT <span className="ds-meta-sep">/</span> <span className="ds-meta-state">{status}</span>{saving ? <span className="ds-meta-save"> · {saving}</span> : null}</p>
+            <p className="ws-eyebrow"><span />Mentee workspace</p>
+            <h1 className="ws-title">Week {outline.weekNumber}<span> · {outline.title}</span></h1>
+            <p className="ws-sub">{now} WAT <span className="ws-sep">•</span> <span className="ws-status">{status.replace(/_/g, " ")}</span>{saving ? <span className="ws-save"> · {saving}</span> : null}</p>
           </div>
-          <div className="ds-top-actions">
-            <button className="btn" onClick={() => setMapOpen(true)}>Week map</button>
-            <button className="btn" onClick={() => setClarifyOpen(true)}>Clarify</button>
-            <button className="btn" onClick={() => setGalleryOpen(true)}>Gallery</button>
-            <details className="d-more">
-              <summary className="btn">More</summary>
-              <div className="d-more-menu card">
-                <button onClick={exportNotes} disabled={exporting}>{exporting ? "Exporting..." : "Export .md"}</button>
-                <button onClick={() => setCharterOpen(true)}>Charter</button>
-                <button onClick={() => setLateOpen(true)}>Request late access</button>
-                <Link to="/">Landing</Link>
-                <button onClick={() => { clearSession(); nav("/login"); }} className="d-danger">Sign out</button>
-              </div>
-            </details>
-          </div>
-        </header>
+          <button className="btn ws-ghost" onClick={() => setClarifyOpen(true)}>Ask for clarification</button>
+        </section>
 
         {error && <div className="d-alert">{error}</div>}
 
-
-
-        <div className="ds-grid">
-          <section className="ds-stage">
-            <div className="ds-stage-head">
-              <span className="ds-stage-index">01</span>
-              <div><p className="ds-stage-kicker">Research</p><h2>Checklist</h2></div>
-              <span className="ds-stage-meta">{done}/{total} complete</span>
-            </div>
-            <div className="ds-stage-body">
-              <div className="d-progress"><div style={{ width: `${pct}%` }} /></div>
-              <div className="d-topic-list">
-                {outline.outlineTopics.map((t) => (
-                  <label key={t.id} className={`d-topic ${completed.includes(t.id) ? "is-done" : ""}`}>
-                    <input type="checkbox" checked={completed.includes(t.id)} onChange={() => toggleTopic(t.id)} />
-                    <span className="d-check" aria-hidden="true" />
-                    <div><strong>{t.topic}</strong><div className="d-muted">{t.researchKeywords.join(" · ")}</div></div>
-                  </label>
-                ))}
-              </div>
+        <div className="ws-flow">
+          <section className="ws-card">
+            <header className="ws-card-head">
+              <div className="ws-step"><span>01</span><div><p className="ws-kicker">Research</p><h2>Weekly checklist</h2></div></div>
+              <div className="ws-meta">{done}/{total} complete</div>
+            </header>
+            <div className="ws-progress" aria-hidden="true"><div style={{ width: `${pct}%` }} /></div>
+            <div className="d-topic-list">
+              {outline.outlineTopics.map((t) => (
+                <label key={t.id} className={`d-topic ${completed.includes(t.id) ? "is-done" : ""}`}>
+                  <input type="checkbox" checked={completed.includes(t.id)} onChange={() => toggleTopic(t.id)} />
+                  <span className="d-check" aria-hidden="true" />
+                  <div><strong>{t.topic}</strong><div className="d-muted">{t.researchKeywords.join(" · ")}</div></div>
+                </label>
+              ))}
             </div>
           </section>
 
-          <section className="ds-stage">
-            <div className="ds-stage-head">
-              <span className="ds-stage-index">02</span>
-              <div><p className="ds-stage-kicker">Reflect</p><h2>Personal notes</h2></div>
-              <span className="ds-stage-meta">{saving || "Autosave"}</span>
-            </div>
-            <div className="ds-stage-body">
-              <textarea className="ds-notes" aria-label="Personal notes" rows={10} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Capture what you learned, blockers, and decisions..." />
-            </div>
+          <section className="ws-card">
+            <header className="ws-card-head">
+              <div className="ws-step"><span>02</span><div><p className="ws-kicker">Reflect</p><h2>Personal notes</h2></div></div>
+              <div className="ws-meta">{saving || "Autosaved"}</div>
+            </header>
+            <textarea className="ds-notes" aria-label="Personal notes" rows={9} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Capture what you learned, blockers, and decisions..." />
           </section>
 
-          <section className="ds-stage">
-            <div className="ds-stage-head">
-              <span className="ds-stage-index">03</span>
-              <div><p className="ds-stage-kicker">Focus</p><h2>Project brief</h2></div>
-            </div>
-            <div className="ds-stage-body">
-              <h3 className="ds-brief-title">{outline.projectBrief.title}</h3>
-              <p className="ds-muted">{outline.projectBrief.description}</p>
-              <ul className="ds-list">{outline.projectBrief.acceptanceCriteria.map((c) => <li key={c}>{c}</li>)}</ul>
-            </div>
+          <section className="ws-card">
+            <header className="ws-card-head">
+              <div className="ws-step"><span>03</span><div><p className="ws-kicker">Build</p><h2>Project brief</h2></div></div>
+            </header>
+            <h3 className="ds-brief-title">{outline.projectBrief.title}</h3>
+            <p className="ds-muted">{outline.projectBrief.description}</p>
+            <ul className="ds-list">{outline.projectBrief.acceptanceCriteria.map((c) => <li key={c}>{c}</li>)}</ul>
           </section>
 
-          <section className="ds-stage ds-stage-submit">
-            <div className="ds-stage-head">
-              <span className="ds-stage-index">04</span>
-              <div><p className="ds-stage-kicker">Ship</p><h2>Submission</h2></div>
+          <section className="ws-card ws-card-submit">
+            <header className="ws-card-head">
+              <div className="ws-step"><span>04</span><div><p className="ws-kicker">Ship</p><h2>Submission</h2></div></div>
               <span className={`ds-pill ${mySubmission ? "is-ok" : ""}`}>{mySubmission ? mySubmission.status : "Not submitted"}</span>
-            </div>
-            <div className="ds-stage-body ds-submit-body">
+            </header>
+            <div className="ds-submit-body">
               <div>
-                <p className="ds-muted" style={{ margin: 0 }}>Due Sunday 11:59 PM WAT. Submit your repository, approach, and AI reflection when ready.</p>
+                <p className="ds-muted" style={{ margin: 0 }}>
+                  {pastCutoff ? "The WAT cutoff has passed for this week." : "Due Sunday 11:59 PM WAT. Submit your repository, approach, and AI reflection."}
+                </p>
                 {lateAccess && <p className="ds-muted" style={{ margin: ".5rem 0 0" }}>Late access: {lateAccess.status}</p>}
               </div>
-              <button className="btn btn-primary ds-submit-btn" onClick={() => setSubmitOpen(true)}>{mySubmission ? "Resubmit project" : "Submit project"}</button>
+              {canLateRequest ? (
+                <button className="btn btn-primary ds-submit-btn" onClick={() => setLateOpen(true)}>Request late submission</button>
+              ) : (
+                <button className="btn btn-primary ds-submit-btn" onClick={() => setSubmitOpen(true)}>{mySubmission ? "Resubmit project" : "Submit project"}</button>
+              )}
             </div>
           </section>
         </div>
@@ -230,9 +197,6 @@ export default function DashboardPage() {
         </div>
       )}
       <ClarificationDrawer open={clarifyOpen} onClose={() => setClarifyOpen(false)} weekNumber={activeWeekNum} topics={outline.outlineTopics} role="MENTEE" />
-      <PeerGalleryDrawer open={galleryOpen} onClose={() => setGalleryOpen(false)} weekNumber={activeWeekNum} />
-      <ProgramCharterDrawer open={charterOpen} onClose={() => setCharterOpen(false)} />
-      <WeekMapDrawer open={mapOpen} onClose={() => setMapOpen(false)} weeks={weeks.length ? weeks : curriculum.weeks.map(w=>({...w,state:"locked_schedule"}))} activeWeek={outline.weekNumber} />
     </main>
   );
 }

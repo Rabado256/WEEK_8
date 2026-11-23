@@ -1,0 +1,33 @@
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { clearSession, getSession } from "../utils/api";
+
+export default function SiteHeader() {
+  const nav = useNavigate();
+  const loc = useLocation();
+  const session = getSession();
+  const authed = !!session?.token;
+  const role = session?.user?.role;
+  const home = role === "MENTOR" ? "/mentor" : "/dashboard";
+
+  return (
+    <header className="site-header">
+      <div className="container site-header-inner">
+        <Link className="brand" to="/">Dev8</Link>
+        <nav className="site-nav" aria-label="Primary">
+          <Link to="/" className={loc.pathname === "/" ? "is-active" : ""}>Home</Link>
+          {authed && <Link to={home} className={loc.pathname === home ? "is-active" : ""}>Workspace</Link>}
+        </nav>
+        <div className="site-header-actions">
+          {authed ? (
+            <>
+              <span className="site-user">{session.user?.displayName}</span>
+              <button className="btn site-btn" onClick={() => { clearSession(); nav("/login"); }}>Sign out</button>
+            </>
+          ) : (
+            <Link className="btn btn-primary site-btn" to="/login">Sign in</Link>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}

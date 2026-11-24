@@ -21,7 +21,7 @@
 .hero h1 em, .gradient-text { font-style: normal; background: linear-gradient(135deg, #6ee7b7 0%, #10b981 40%, #22d3ee 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .hero p { max-width: 46ch; color: var(--muted); font-size: 1.05rem; line-height: 1.7; margin: 0; }
 .hero-actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.75rem; }
-.hero-stats { display: flex; gap: 1.75rem; flex-wrap: wrap; margin-top: 2.25rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+.hero-stats { display: flex; gap: 1.75rem; flex-wrap: wrap; margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
 .hero-stat { display: flex; align-items: baseline; gap: .45rem; }
 .hero-stat strong { font-size: 1.15rem; font-weight: 800; color: var(--text); }
 .hero-stat span { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
@@ -108,6 +108,14 @@
 .proof-link:hover { color: var(--text); }
 .proof-card h3 { font-size: 1.05rem; margin: 0 0 .35rem; letter-spacing: -.02em; }
 .proof-card p { margin: 0; color: var(--muted); line-height: 1.6; font-size: .88rem; }
+.proof-iframe { width: 200%; height: 200%; border: 0; transform: scale(.5); transform-origin: top left; background: #0b1220; pointer-events: none; }
+.proof-shot-overlay { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: flex-end; padding: .75rem; text-decoration: none; background: linear-gradient(180deg, transparent 55%, rgba(11,18,32,.55)); opacity: 0; transition: opacity .2s; }
+.proof-shot:hover .proof-shot-overlay, .proof-shot-overlay:focus-visible { opacity: 1; }
+.proof-shot-overlay span { font-size: .72rem; font-weight: 700; color: #e2e8f0; background: rgba(15,23,42,.72); border: 1px solid rgba(148,163,184,.2); padding: .35rem .6rem; border-radius: 999px; backdrop-filter: blur(8px); }
+.proof-links { display: flex; gap: .75rem; align-items: center; }
+.footer-notes li { color: var(--muted); font-size: .88rem; }
+.footer-notes .code-accent { display: inline-block; min-width: 2.5rem; margin-right: .35rem; color: var(--accent); font-family: var(--mono); font-size: .75rem; }
+.footer-workspace-link { display: inline-block; margin-top: 1rem; }
 .section-head { margin-bottom: 2rem; }
 .section-head.center { text-align: center; }
 .section-head.center p { margin-inline: auto; }

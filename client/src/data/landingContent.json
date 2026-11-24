@@ -12,20 +12,20 @@
     "loop": ["Learn", "Build", "Submit", "Review", "Ship"]
   },
   "howItWorks": [
-    { "title": "Monday brief", "detail": "Get your weekly outline and project." },
-    { "title": "Build & ask", "detail": "Research, practice, and get unstuck fast." },
-    { "title": "Sunday ship", "detail": "Submit your repo before 11:59 PM WAT." },
-    { "title": "Review & grow", "detail": "Apply feedback and unlock the next week." }
+    { "title": "Monday brief", "detail": "Get your weekly outline and project brief at 09:00 WAT." },
+    { "title": "Build & ask", "detail": "Research, practice, and ask for clarification when stuck." },
+    { "title": "Sunday ship", "detail": "Submit your repo before the Sunday 11:59 PM WAT cutoff." },
+    { "title": "Review & grow", "detail": "Apply feedback, unlock next week; if late, submit a reason for mentor review to request access." }
   ],
   "whyUs": [
-    { "title": "Ship real repos", "detail": "Progress is earned through GitHub submissions." },
-    { "title": "Honest AI use", "detail": "Use AI to learn — never to fake the work." },
-    { "title": "Clear scoring", "detail": "A transparent growth scorecard." }
+    { "title": "Ship real repos", "detail": "Progress is earned through GitHub submissions, not passive watching." },
+    { "title": "Honest AI use", "detail": "Use AI to learn and build faster — but explain it honestly, never fake the work." },
+    { "title": "Clear scoring", "detail": "A transparent 4-pillar scorecard: Projects 45%, Understanding & Code Quality 25%, Discussion & Participation 15%, Weekly Tasks 15%." }
   ],
   "successStories": [
-    { "name": "Linear-style Landing", "outcome": "Clean layout, sharp typography, and strong visual hierarchy.", "link": "https://github.com/linear", "site": "linear.app", "image": "/images/proof-linear.png" },
-    { "name": "Stripe-style Product Page", "outcome": "Polished spacing, confident copy, and conversion-focused sections.", "link": "https://github.com/stripe", "site": "stripe.com", "image": "/images/proof-stripe.png" },
-    { "name": "Vercel-style Developer Site", "outcome": "Dark aesthetic, crisp UI, and fast modern product feel.", "link": "https://github.com/vercel", "site": "vercel.com", "image": "/images/proof-vercel.png" }
+    { "name": "Next-Gen", "outcome": "A student-built project shipped with a live deployment and public GitHub repository.", "link": "https://github.com/Rabado256/Next-Gen", "live": "https://next-gen-lime-five.vercel.app/", "site": "next-gen-lime-five.vercel.app" },
+    { "name": "Weather App", "outcome": "A weather application built during cohort work, demonstrating API use and deployment.", "link": "https://github.com/Rabado256/WEEK_8.0", "live": "https://weather-taupe-delta.vercel.app/", "site": "weather-taupe-delta.vercel.app" },
+    { "name": "Week 7 Project", "outcome": "A weekly capstone project showing consistent progress, iteration, and shipping.", "link": "https://github.com/Rabado256/WEEK_7", "live": "https://week-7-steel.vercel.app", "site": "week-7-steel.vercel.app" }
   ],
   "footer": {
     "timezone": "WAT (Africa/Lagos, UTC+1)",

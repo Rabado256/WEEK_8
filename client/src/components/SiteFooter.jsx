@@ -5,7 +5,6 @@ import ProgramCharterDrawer from "./ProgramCharterDrawer";
 
 export default function SiteFooter() {
   const [charterOpen, setCharterOpen] = useState(false);
-  const [footerEmail, setFooterEmail] = useState("");
 
   return (
     <>
@@ -34,12 +33,14 @@ export default function SiteFooter() {
             </ul>
           </div>
           <div className="footer-col">
-            <h4 className="footer-head"><span className="code-accent">03</span> Newsletter</h4>
-            <p className="footer-small">Get cohort updates and shipping tips.</p>
-            <div className="footer-form">
-              <input type="email" placeholder="you@example.dev" value={footerEmail} onChange={(e) => setFooterEmail(e.target.value)} aria-label="Email address" />
-              <button type="button" className="btn btn-primary footer-join">Join</button>
-            </div>
+            <h4 className="footer-head"><span className="code-accent">03</span> Cohort Notes</h4>
+            <p className="footer-small">Key rules at a glance so every learner knows the rhythm.</p>
+            <ul className="footer-list footer-notes">
+              <li><span className="code-accent">TZ</span> WAT (Africa/Lagos, UTC+1)</li>
+              <li><span className="code-accent">Due</span> Sunday 11:59 PM WAT</li>
+              <li><span className="code-accent">Late</span> Submit reason for mentor review</li>
+            </ul>
+            <Link to="/login" className="text-link footer-workspace-link">Enter workspace →</Link>
           </div>
         </div>
         <div className="container footer-bottom">

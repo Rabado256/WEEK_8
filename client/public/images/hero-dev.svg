@@ -27,24 +27,24 @@
   <g font-family="ui-monospace,monospace" font-size="16">
     <text x="152" y="210" fill="#6ee7b7">const</text><text x="214" y="210" fill="#eef4ff">project</text><text x="290" y="210" fill="#94a3b8">=</text><text x="312" y="210" fill="#22d3ee">ship</text><text x="352" y="210" fill="#eef4ff">(</text><text x="362" y="210" fill="#fbbf24">"week-3"</text><text x="446" y="210" fill="#eef4ff">);</text>
     <text x="152" y="246" fill="#6ee7b7">const</text><text x="214" y="246" fill="#eef4ff">feedback</text><text x="302" y="246" fill="#94a3b8">=</text><text x="324" y="246" fill="#6ee7b7">await</text><text x="380" y="246" fill="#22d3ee">mentor.review</text><text x="508" y="246" fill="#eef4ff">();</text>
-    <text x="152" y="282" fill="#c084fc">if</text><text x="178" y="282" fill="#eef4ff">(feedback.ready) {'{'}</text>
+    <text x="152" y="282" fill="#c084fc">if</text><text x="178" y="282" fill="#eef4ff">(feedback.ready) {</text>
     <text x="184" y="318" fill="#22d3ee">unlockNextWeek</text><text x="332" y="318" fill="#eef4ff">();</text>
     <text x="184" y="354" fill="#22d3ee">celebrate</text><text x="274" y="354" fill="#eef4ff">(</text><text x="284" y="354" fill="#fbbf24">"shipped"</text><text x="372" y="354" fill="#eef4ff">);</text>
-    <text x="152" y="390" fill="#eef4ff">{'}'}</text>
+    <text x="152" y="390" fill="#eef4ff">}</text>
   </g>
   <g filter="url(#glow)">
     <rect x="560" y="350" width="280" height="220" rx="18" fill="#131d33" stroke="rgba(34,211,238,.45)" stroke-width="1.5"/>
   </g>
   <text x="592" y="392" fill="#94a3b8" font-size="13" font-family="ui-monospace,monospace">MENTOR REVIEW</text>
   <text x="592" y="432" fill="#eef4ff" font-size="22" font-weight="700" font-family="Arial,sans-serif">Approved ✓</text>
-  <text x="592" y="462" fill="#94a3b8" font-size="14" font-family="Arial,sans-serif">Clean structure. Good Git</text>
-  <text x="592" y="484" fill="#94a3b8" font-size="14" font-family="Arial,sans-serif">history and clear reflection.</text>
+  <text x="592" y="462" fill="#cbd5e1" font-size="14" font-family="Arial,sans-serif">Clean structure. Good Git</text>
+  <text x="592" y="484" fill="#cbd5e1" font-size="14" font-family="Arial,sans-serif">history and clear reflection.</text>
   <rect x="592" y="508" width="120" height="34" rx="10" fill="rgba(16,185,129,.18)" stroke="rgba(16,185,129,.45)"/>
   <text x="652" y="530" text-anchor="middle" fill="#6ee7b7" font-size="13" font-family="Arial,sans-serif">Week 4 unlocked</text>
   <g filter="url(#glow)">
     <rect x="72" y="520" width="260" height="120" rx="16" fill="#131d33" stroke="rgba(16,185,129,.35)"/>
   </g>
-  <text x="100" y="558" fill="#94a3b8" font-size="12" font-family="ui-monospace,monospace">5-PILLAR SCORE</text>
+  <text x="100" y="558" fill="#cbd5e1" font-size="12" font-family="ui-monospace,monospace">4-PILLAR SCORE</text>
   <text x="100" y="596" fill="#10b981" font-size="34" font-weight="700" font-family="Arial,sans-serif">86</text>
-  <text x="152" y="596" fill="#94a3b8" font-size="14" font-family="Arial,sans-serif">/ 100 weighted</text>
+  <text x="152" y="596" fill="#cbd5e1" font-size="14" font-family="Arial,sans-serif">/ 100 weighted</text>
 </svg>

@@ -123,7 +123,8 @@ strong { color: var(--text); }
 .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
 .app-main { flex: 1; }
 .site-header { position: sticky; top: 0; z-index: 40; backdrop-filter: blur(14px); background: rgba(11,18,32,.72); border-bottom: 1px solid rgba(148,163,184,.08); }
-.site-header-inner { height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.site-header-inner { height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.site-header .brand { margin-right: .5rem; flex-shrink: 0; }
 .site-nav { display: flex; gap: .25rem; align-items: center; }
 .site-nav a { color: var(--muted); text-decoration: none; font-size: .9rem; padding: .55rem .8rem; border-radius: 10px; transition: color .2s, background .2s; }
 .site-nav a:hover, .site-nav a.is-active { color: var(--text); background: rgba(148,163,184,.08); }

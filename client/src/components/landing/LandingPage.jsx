@@ -29,7 +29,7 @@ export default function LandingPage() {
             </div>
             <div className="hero-stats">
               <div className="hero-stat"><strong>8</strong><span>Weeks</span></div>
-              <div className="hero-stat"><strong>1:1</strong><span>Feedback</span></div>
+              <div className="hero-stat"><strong>Mentor</strong><span>Reviews</span></div>
               <div className="hero-stat"><strong>WAT</strong><span>Cadence</span></div>
             </div>
           </div>
@@ -90,9 +90,10 @@ export default function LandingPage() {
                 <div className="code-output">
                   <div className="output-head"><span className="output-dot" /> Output</div>
                   <div className="output-line"><span className="out-ok">✓</span> brief received <span className="out-dim">Mon 09:00 WAT</span></div>
+                  <div className="output-line"><span className="out-ok">✓</span> cutoff <span className="out-dim">Sun 11:59 PM WAT</span></div>
                   <div className="output-line"><span className="out-ok">✓</span> repo shipped <span className="out-dim">github.com/you/week-03</span></div>
-                  <div className="output-line"><span className="out-ok">✓</span> mentor review: <span className="out-accent">approved</span></div>
-                  <div className="output-line"><span className="out-arrow">→</span> <span className="out-accent">next week unlocked</span></div>
+                  <div className="output-line"><span className="out-ok">!</span> missed cutoff? <span className="out-dim">submit reason → mentor review for access</span></div>
+                  <div className="output-line"><span className="out-arrow">→</span> <span className="out-accent">reviewed, then next week unlocked</span></div>
                 </div>
               </div>
             </div>
@@ -132,13 +133,25 @@ export default function LandingPage() {
                   <div className="proof-browser">
                     <div className="browser-bar"><span /><span /><span /><div className="browser-url">{s.site}</div></div>
                     <div className="proof-shot">
-                      <img src={s.image} alt={`${s.name} preview`} loading="lazy" />
+                      <iframe
+                        src={s.live}
+                        title={`${s.name} live preview`}
+                        loading="lazy"
+                        className="proof-iframe"
+                        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                      />
+                      <a className="proof-shot-overlay" href={s.live} target="_blank" rel="noreferrer" aria-label={`Open ${s.name} live site`}>
+                        <span>Open live ↗</span>
+                      </a>
                     </div>
                   </div>
                   <div className="proof-body">
                     <div className="proof-top">
                       <span className="proof-id">REF 0{i + 1}</span>
-                      <a className="proof-link" href={s.link} target="_blank" rel="noreferrer">GitHub ↗</a>
+                      <div className="proof-links">
+                        <a className="proof-link" href={s.live} target="_blank" rel="noreferrer">Live ↗</a>
+                        <a className="proof-link" href={s.link} target="_blank" rel="noreferrer">GitHub ↗</a>
+                      </div>
                     </div>
                     <h3>{s.name}</h3>
                     <p>{s.outcome}</p>

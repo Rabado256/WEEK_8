@@ -125,7 +125,7 @@ export default function LandingPage() {
           <div className="container">
             <div className="section-head center">
               <span className="pill">Outcomes</span>
-              <h2>Proof of <span className="gradient-text">work</span></h2>
+              <h2>Students <span className="gradient-text">repos</span></h2>
             </div>
             <div className="proof-grid">
               {content.successStories.map((s, i) => (

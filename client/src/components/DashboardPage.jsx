@@ -22,6 +22,10 @@ export default function DashboardPage() {
   const [submitOpen, setSubmitOpen] = useState(false);
   const [lateOpen, setLateOpen] = useState(false);
   const [clarifyOpen, setClarifyOpen] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [lateError, setLateError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [requestingLate, setRequestingLate] = useState(false);
 
   useEffect(() => {
     if (!session?.token) { nav("/login"); return; }
@@ -68,24 +72,26 @@ export default function DashboardPage() {
 
   async function submitProject(e) {
     e.preventDefault();
-    if (!activeWeekNum) return;
+    if (!activeWeekNum || submitting) return;
+    setSubmitting(true); setSubmitError(""); setError("");
     try {
       await api(`/api/weeks/${activeWeekNum}/submit`, { method: "POST", body: submitForm });
       setSubmitOpen(false);
       const [w, s] = await Promise.all([api("/api/weeks"), api(`/api/weeks/${activeWeekNum}/submission/me`)]);
       setWeeks(w.weeks || []); setMySubmission(s.submission || null); setLateAccess(s.lateAccess || null);
-    } catch (err) { setError(err.message); }
+    } catch (err) { setSubmitError(err.message); } finally { setSubmitting(false); }
   }
 
   async function requestLateAccess(e) {
     e.preventDefault();
-    if (!activeWeekNum) return;
+    if (!activeWeekNum || requestingLate) return;
+    setRequestingLate(true); setLateError(""); setError("");
     try {
       await api(`/api/weeks/${activeWeekNum}/late-access`, { method: "POST", body: lateForm });
       setLateOpen(false);
       const s = await api(`/api/weeks/${activeWeekNum}/submission/me`);
       setLateAccess(s.lateAccess || null);
-    } catch (err) { setError(err.message); }
+    } catch (err) { setLateError(err.message); } finally { setRequestingLate(false); }
   }
 
   function toggleTopic(id) { setCompleted((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]); }
@@ -148,9 +154,9 @@ export default function DashboardPage() {
             <div className="ws-brief-footer">
               <p className="ds-muted ws-brief-note">{pastCutoff ? "WAT cutoff passed." : "Due Sunday 11:59 PM WAT."}{lateAccess ? ` Late access: ${lateAccess.status}.` : ""}</p>
               {canLateRequest ? (
-                <button type="button" className="btn btn-primary ds-submit-btn" onClick={() => setLateOpen(true)}>Request late submission</button>
+                <button type="button" className="btn btn-primary ds-submit-btn" onClick={() => { setLateError(""); setLateOpen(true); }}>Request late submission</button>
               ) : (
-                <button type="button" className="btn btn-primary ds-submit-btn" onClick={() => setSubmitOpen(true)}>{mySubmission ? "Resubmit project" : "Submit project"}</button>
+                <button type="button" className="btn btn-primary ds-submit-btn" onClick={() => { setSubmitError(""); setSubmitOpen(true); }}>{mySubmission ? "Resubmit project" : "Submit project"}</button>
               )}
             </div>
           </section>
@@ -166,7 +172,8 @@ export default function DashboardPage() {
               <label className="grid" style={{ gap: ".35rem" }}><span>Live demo URL (optional)</span><input value={submitForm.liveUrl} onChange={(e)=>setSubmitForm({...submitForm,liveUrl:e.target.value})} placeholder="https://..." /></label>
               <label className="grid" style={{ gap: ".35rem" }}><span>Approach</span><textarea required rows={4} value={submitForm.approachNote} onChange={(e)=>setSubmitForm({...submitForm,approachNote:e.target.value})} /></label>
               <label className="grid" style={{ gap: ".35rem" }}><span>AI reflection</span><textarea required rows={4} value={submitForm.aiReflectionNote} onChange={(e)=>setSubmitForm({...submitForm,aiReflectionNote:e.target.value})} /></label>
-              <button className="btn btn-primary">Submit repository</button>
+              {submitError && <div className="d-alert">{submitError}</div>}
+              <button className="btn btn-primary" type="submit" disabled={submitting}>{submitting ? "Submitting..." : "Submit repository"}</button>
             </div>
           </form>
         </div>
@@ -179,7 +186,8 @@ export default function DashboardPage() {
               <label className="grid" style={{ gap: ".35rem" }}><span>Reason</span><textarea required rows={4} value={lateForm.reason} onChange={(e)=>setLateForm({...lateForm,reason:e.target.value})} /></label>
               <label className="grid" style={{ gap: ".35rem" }}><span>Blockers/progress</span><textarea rows={3} value={lateForm.blockers} onChange={(e)=>setLateForm({...lateForm,blockers:e.target.value})} /></label>
               <label className="grid" style={{ gap: ".35rem" }}><span>Requested until (WAT ISO, optional)</span><input value={lateForm.requestedUntilWat} onChange={(e)=>setLateForm({...lateForm,requestedUntilWat:e.target.value})} placeholder="2026-11-25T23:59:59+01:00" /></label>
-              <button className="btn btn-primary">Send request</button>
+              {lateError && <div className="d-alert">{lateError}</div>}
+              <button className="btn btn-primary" type="submit" disabled={requestingLate}>{requestingLate ? "Sending..." : "Send request"}</button>
             </div>
           </form>
         </div>

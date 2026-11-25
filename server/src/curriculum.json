@@ -3,12 +3,7 @@
   "timezone": "Africa/Lagos",
   "cutoffRule": "Sunday 23:59:59 WAT",
   "totalWeeks": 8,
-  "scoringWeights": {
-    "projects": 0.45,
-    "understandingAndCodeQuality": 0.25,
-    "discussionAndParticipation": 0.15,
-    "weeklyTasks": 0.15
-  },
+
   "weeks": [
     {
       "weekNumber": 1,

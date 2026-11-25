@@ -20,7 +20,7 @@
   "whyUs": [
     { "title": "Ship real repos", "detail": "Progress is earned through GitHub submissions, not passive watching." },
     { "title": "Honest AI use", "detail": "Use AI to learn and build faster — but explain it honestly, never fake the work." },
-    { "title": "Clear scoring", "detail": "A transparent 4-pillar scorecard: Projects 45%, Understanding & Code Quality 25%, Discussion & Participation 15%, Weekly Tasks 15%." }
+    { "title": "Clear feedback", "detail": "Mentors review submissions, give actionable feedback, and help you unblock quickly." }
   ],
   "successStories": [
     { "name": "Next-Gen", "outcome": "A student-built project shipped with a live deployment and public GitHub repository.", "link": "https://github.com/Rabado256/Next-Gen", "live": "https://next-gen-lime-five.vercel.app/", "site": "next-gen-lime-five.vercel.app" },

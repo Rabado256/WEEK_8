@@ -11,22 +11,13 @@ export function buildWeekNotesMarkdown(data) {
   lines.push(`- **Cohort:** ${safe(data.cohortCode)}`);
   lines.push(`- **Generated:** ${new Date().toISOString()}`);
   lines.push("");
-  lines.push(`## Growth Summary`);
+  const reviews = data.reviews || [];
+  lines.push(`## Mentor Feedback`);
   lines.push("");
-  const s = data.score || {};
-  lines.push(`| Pillar | Weight | Score |`);
-  lines.push(`|---|---:|---:|`);
-  lines.push(`| Projects | 45% | ${s.projects ?? 0} |`);
-  lines.push(`| Understanding & Code Quality | 25% | ${s.understanding ?? 0} |`);
-  lines.push(`| Discussion & Participation | 15% | ${s.discussion ?? 0} |`);
-  lines.push(`| Weekly Tasks | 15% | ${s.weeklyTasks ?? 0} |`);
-  lines.push(`| **Weighted Total** | **100%** | **${s.weightedTotal ?? 0}** |`);
-  lines.push("");
-  if (s.mentorSummary) { lines.push(`**Mentor summary:** ${safe(s.mentorSummary)}`); lines.push(""); }
-  lines.push(`## Attendance`);
-  lines.push("");
-  if (data.attendance?.length) data.attendance.forEach((a) => lines.push(`- Week ${a.week_number}: ${safe(a.status)}`));
-  else lines.push(`- No attendance records yet.`);
+  if (reviews.length) reviews.forEach((r) => {
+    lines.push(`- **Week ${r.week_number}:** ${safe(r.status)}${r.mentor_feedback ? ` - ${safe(r.mentor_feedback)}` : ""}`);
+  });
+  else lines.push(`- No mentor feedback yet.`);
   lines.push("");
 
   const progressByWeek = new Map((data.progress || []).map((p) => [p.week_number, p]));

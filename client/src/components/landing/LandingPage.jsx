@@ -34,7 +34,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="hero-visual">
-            <img src="/images/hero-dev.svg" alt="Dev8 workspace preview showing code, mentor review, and scorecard" width="960" height="720" loading="eager" />
+            <img src="/images/hero-dev.svg" alt="Dev8 workspace preview showing code, mentor review, and weekly progress" width="960" height="720" loading="eager" />
           </div>
         </section>
         <hr className="glow-line" />

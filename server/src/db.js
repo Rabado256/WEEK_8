@@ -104,30 +104,9 @@ export function migrate() {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       UNIQUE (submission_id, reviewer_id)
     );
-    CREATE TABLE IF NOT EXISTS attendance_records (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      cohort_id INTEGER NOT NULL REFERENCES cohorts(id) ON DELETE CASCADE,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      week_number INTEGER NOT NULL CHECK (week_number BETWEEN 1 AND 8),
-      status TEXT DEFAULT 'absent' CHECK (status IN ('present','absent','excused')),
-      updated_by_mentor_id INTEGER REFERENCES users(id),
-      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE (cohort_id, user_id, week_number)
-    );
-    CREATE TABLE IF NOT EXISTS rubric_scores (
-      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      projects_score REAL DEFAULT 0 CHECK (projects_score BETWEEN 0 AND 100),
-      understanding_score REAL DEFAULT 0 CHECK (understanding_score BETWEEN 0 AND 100),
-      discussion_score REAL DEFAULT 0 CHECK (discussion_score BETWEEN 0 AND 100),
-      weekly_tasks_score REAL DEFAULT 0 CHECK (weekly_tasks_score BETWEEN 0 AND 100),
-      collaboration_score REAL DEFAULT 0 CHECK (collaboration_score BETWEEN 0 AND 100),
-      mentor_summary TEXT DEFAULT '',
-      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-    );
     CREATE INDEX IF NOT EXISTS idx_users_cohort_role ON users(cohort_id, role);
     CREATE INDEX IF NOT EXISTS idx_submissions_cohort_week ON submissions(cohort_id, week_number, status);
     CREATE INDEX IF NOT EXISTS idx_clarifications_cohort_week ON clarifications(cohort_id, week_number, status);
-    CREATE INDEX IF NOT EXISTS idx_attendance_cohort_week ON attendance_records(cohort_id, week_number);
   `);
 }
 

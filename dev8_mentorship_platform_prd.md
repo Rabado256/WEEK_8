@@ -17,9 +17,9 @@
 Once inside the cohort workspace, Dev8 drops **one focused Weekly Course Outline every Monday** (in `WAT / Africa/Lagos`). Learners independently research lessons and documentation for the outlined topics, practice in zero-setup sandboxes, log what they discovered, raise targeted *"Need Additional Explanation"* requests when stuck, and submit a **GitHub repository** with an approach and AI reflection before **Sunday 11:59 PM WAT** to unlock the next week.
 
 ### 1.2 Target Users & Roles
-* **Visitor / Prospective Cohort Applicant:** Explores the public landing page (`/`) to understand the mentorship philosophy, weekly Mon–Sun cadence, AI/Vibe Coding ethics, 4-pillar evaluation rubric, and cohort outcomes before joining with a Cohort Code.
+* **Visitor / Prospective Cohort Applicant:** Explores the public landing page (`/`) to understand the mentorship philosophy, weekly Mon–Sun cadence, AI/Vibe Coding ethics, review expectations, and cohort outcomes before joining with a Cohort Code.
 * **Learner (`MENTEE`):** A self-driven developer enrolled in the 8-week mentorship cohort who studies weekly course outlines independently, logs external resources/takeaways, builds weekly practical projects, participates in peer reviews, and communicates proactively with mentors.
-* **Mentor (`MENTOR`):** An engineering mentor or program facilitator guiding a cohort who manages weekly roll-call attendance, reviews GitHub submissions, grants late-submission access when warranted, requests follow-ups, answers clarification requests, and scores learners across a transparent 4-pillar growth rubric. Mentors can sign up/login through the same cohort auth gate by selecting the Mentor role.
+* **Mentor (`MENTOR`):** An engineering mentor or program facilitator guiding a cohort who reviews GitHub submissions, grants late-submission access when warranted, requests follow-ups, and answers clarification requests. Mentors can sign up/login through the same cohort auth gate by selecting the Mentor role.
 
 ### 1.3 Core Program Philosophy & Culture
 Dev8 codifies the cohort's core culture directly into both its public narrative and its product workflow:
@@ -43,7 +43,7 @@ Dev8 translates all **8 Program Rules & Expectations**—plus the weekly cadence
 | **5. Deadlines & Commitment** *(Sunday 11:59 PM WAT cutoff; don't disappear, communicate)* | **Hard Sunday 11:59 PM WAT Cutoff + Late Access Request:** Submissions lock automatically after **Sunday 11:59 PM WAT**. Learners can submit a reason for non-submission; mentors can review and **grant submission access**. |
 | **6. Respect & Community** *(No insults, mocking, or harassment; help others grow)* | **Pinned Program Charter Drawer & Structured Peer Notes:** Slide-over charter accessible from any screen + respectful *"What worked well"* / *"Constructive suggestion"* peer review prompts. |
 | **7. Student Scoring** *(40% Projects, 20% Code Quality, 15% Discussion, 15% Weekly Tasks, 10% Collaboration)* | **Transparent 5-Pillar Growth Scorecard:** Live weighted breakdown visible to the learner and mentor—framed around personal growth rather than public competition. |
-| **8. Your Responsibility & Mentor Support** *(Learners do independent work; mentors guide & clarify)* | **Self-Research Log, Clarification Tickets, Mentor Follow-Up & Roll Call:** Learners track independent research, raise *"Need Additional Explanation"* tickets with optional code/sandbox context, respond to mentor `REQUEST_FOLLOW_UP` prompts, and are marked via mentor roll-call toggles. |
+| **8. Your Responsibility & Mentor Support** *(Learners do independent work; mentors guide & clarify)* | **Self-Research Log, Clarification Tickets & Mentor Follow-Up:** Learners track independent research, raise *"Need Additional Explanation"* tickets with optional code/sandbox context, and respond to mentor `REQUEST_FOLLOW_UP` prompts. |
 
 ---
 
@@ -129,7 +129,6 @@ To align with modern learning platform onboarding while honoring Dev8's Quiet UI
 * **Post-Submission Peer Solution Gallery:** Once a learner submits their own GitHub link for Week $N$, they unlock Week $N$'s **Peer Gallery** to inspect classmates' repositories and leave respectful feedback (*"What worked well"* + *"Constructive suggestion"*).
 
 ### Feature 6: Mentor Roll-Call Attendance Toggle, Cohort Status Strip & 4-Pillar Scorecard
-* **Mentor Roll-Call Attendance Toggle:** For each week's session, mentors have a direct **Roll-Call Toggle** per learner (`present`, `absent`, `excused`)—no learner attendance forms required. Attendance history is visible to the learner and informs discussion/participation evaluation.
 * **Mentor Cohort Status Strip:** At the top of the Mentor view for the selected week, a compact status strip displays live counts for:
   * `Submitted`
   * `Locked / Past Cutoff`
@@ -147,7 +146,7 @@ To align with modern learning platform onboarding while honoring Dev8's Quiet UI
 
 ### Feature 7: Program Charter Drawer & 1-Click Markdown Study/Portfolio Export
 * **Program Charter Drawer:** Pinned access (from both the landing page and authenticated views) to all 8 Program Rules, cadence/cutoff rules, scoring weights, and the *Learn → Discuss → Build → Submit → Review → Improve → Ship* culture.
-* **1-Click `.md` Export:** Exports a clean `dev8-week-notes.md` file containing the learner's researched topics, *"What I Found & Learned"* log, submitted GitHub links, approach/AI reflections, clarification notes, attendance status, and current 4-pillar growth summary.
+* **1-Click `.md` Export:** Exports a clean `dev8-week-notes.md` file containing the learner's researched topics, *"What I Found & Learned"* log, submitted GitHub links, approach/AI reflections, clarification notes, and mentor feedback.
 
 ---
 
@@ -182,7 +181,7 @@ To align with modern learning platform onboarding while honoring Dev8's Quiet UI
 |                      DATABASE (SQLite / PostgreSQL)               |
 |  [cohorts] [users] [weekly_progress] [research_logs]              |
 |  [submissions] [late_access_requests] [clarifications]            |
-|  [peer_reviews] [attendance_records] [rubric_scores]              |
+|  [peer_reviews]                                                    |
 +-------------------------------------------------------------------+
 ```
 
@@ -195,12 +194,6 @@ To align with modern learning platform onboarding while honoring Dev8's Quiet UI
   "timezone": "Africa/Lagos",
   "cutoffRule": "Sunday 23:59:59 WAT",
   "totalWeeks": 8,
-  "scoringWeights": {
-    "projects": 0.45,
-    "understandingAndCodeQuality": 0.25,
-    "discussionAndParticipation": 0.15,
-    "weeklyTasks": 0.15
-  },
   "weeks": [
     {
       "weekNumber": 1,
@@ -244,7 +237,7 @@ All authenticated routes require `Authorization: Bearer <session_token>`.
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/auth/join` | Public | Join or resume session via `{ cohortCode, displayName, pin, role }`. Returns `{ token, user, cohort }`. |
 | `GET` | `/api/public/highlights` | Public | Optional lightweight endpoint serving featured cohort outcomes/success stories for Landing Section 5 (falls back to static `landingContent.json`). |
-| `GET` | `/api/weeks` | Both | Returns all 8 outlines with Monday drop dates, Sunday 11:59 PM WAT cutoffs, lock states (`locked_schedule`, `active_open`, `closed_cutoff`, `late_access_granted`, `locked_submission`, `unlocked`), late-access status, and attendance. |
+| `GET` | `/api/weeks` | Both | Returns all 8 outlines with Monday drop dates, Sunday 11:59 PM WAT cutoffs, lock states (`locked_schedule`, `active_open`, `closed_cutoff`, `late_access_granted`, `locked_submission`, `unlocked`), and late-access status. |
 | `PATCH` | `/api/weeks/:weekNumber/progress` | Mentee | Saves researched topic checkmarks & personal notes `{ completedTopicIds, personalNotes }`. |
 | `POST` | `/api/weeks/:weekNumber/research-logs` | Mentee | Adds an independent resource/takeaway entry `{ title, url, takeaway }`. |
 | `POST` | `/api/weeks/:weekNumber/late-access` | Mentee | Submits reason for non-submission / missed cutoff `{ reason, blockers, requestedUntilWat }`. |
@@ -257,8 +250,6 @@ All authenticated routes require `Authorization: Bearer <session_token>`.
 | `PATCH` | `/api/clarifications/:id/learner-reply` | Mentee | Learner answers a `follow_up_requested` prompt or marks `{ status: "resolved", learnerNote }`. |
 | `GET` | `/api/weeks/:weekNumber/gallery` | Both | Returns peer GitHub submissions & reviews for Week $N$ (gated until Mentee submits Week $N$). |
 | `POST` | `/api/submissions/:id/peer-review` | Mentee | Posts respectful peer feedback `{ strengthNote, suggestionNote }`. |
-| `PATCH` | `/api/weeks/:weekNumber/attendance/:userId` | Mentor | Mentor roll-call toggle `{ status: "present" \| "absent" \| "excused" }`. |
-| `GET` | `/api/scores/me` | Mentee | Returns learner's 4-pillar scores, computed weighted total, and mentor evaluation notes. |
 | `PUT` | `/api/mentees/:userId/scores` | Mentor | Updates `{ projects, understanding, discussion, weeklyTasks, mentorSummary }` and returns computed weighted score. |
 
 ### 5.4 Database Schema (PostgreSQL / SQLite Compatible)
@@ -368,26 +359,6 @@ CREATE TABLE peer_reviews (
   UNIQUE (submission_id, reviewer_id)
 );
 
-CREATE TABLE attendance_records (
-  id SERIAL PRIMARY KEY,
-  cohort_id INTEGER REFERENCES cohorts(id) ON DELETE CASCADE,
-  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  week_number INTEGER NOT NULL CHECK (week_number BETWEEN 1 AND 8),
-  status VARCHAR(16) DEFAULT 'absent' CHECK (status IN ('present', 'absent', 'excused')),
-  updated_by_mentor_id INTEGER REFERENCES users(id),
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE (cohort_id, user_id, week_number)
-);
-
-CREATE TABLE rubric_scores (
-  user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-  projects_score NUMERIC(5,2) DEFAULT 0 CHECK (projects_score BETWEEN 0 AND 100),
-  understanding_score NUMERIC(5,2) DEFAULT 0 CHECK (understanding_score BETWEEN 0 AND 100),
-  discussion_score NUMERIC(5,2) DEFAULT 0 CHECK (discussion_score BETWEEN 0 AND 100),
-  weekly_tasks_score NUMERIC(5,2) DEFAULT 0 CHECK (weekly_tasks_score BETWEEN 0 AND 100),
-  mentor_summary TEXT DEFAULT '',
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 ```
 
 ---
@@ -402,7 +373,6 @@ client/src/
 │   ├── api.js                       # API base (VITE_API_URL), session/auth fetch wrapper
 │   ├── exportMarkdown.js            # 1-click dev8-week-notes.md export builder
 │   ├── scheduleWat.js               # WAT formatting/cutoff helpers
-│   └── scoring.js                   # 4-pillar weighted formula (45/25/15/15)
 ├── styles/
 │   ├── tokens.css                   # Design tokens (dark/glass + accent palette)
 │   ├── landing.css                  # Landing section styles
@@ -418,7 +388,7 @@ client/src/
     │   └── LandingPage.jsx          # 6-section public landing page
     ├── AuthGatePage.jsx             # /login Sign up/Login + cohort code/name/PIN/role
     ├── DashboardPage.jsx            # /dashboard mentee flow: checklist, notes, brief, submit/late-request
-    ├── MentorDashboardPage.jsx      # /mentor overview, submissions, late access, attendance, scoring
+    ├── MentorDashboardPage.jsx      # /mentor overview, submissions, late access, clarifications
     ├── ProtectedRoute.jsx           # Role-aware route guard
     ├── ClarificationDrawer.jsx      # Clarification tickets/follow-ups
     ├── PeerGalleryDrawer.jsx        # Gated peer gallery (available)
@@ -431,7 +401,6 @@ server/src/
 ├── db.js                            # SQLite schema/migrate/seed (better-sqlite3)
 ├── auth.js                          # Token/session auth helpers
 ├── scheduleWat.js                   # WAT drop/cutoff logic
-├── scoring.js                       # 4-pillar weighted scoring
 └── curriculum.json                  # Server-side curriculum copy
 ```
 
@@ -468,5 +437,5 @@ server/src/
 | **Commit 4** | `feat: scaffold express api, postgres/sqlite schema, and cohort pin auth` | Create Express server, SQL schema for all 10 tables, `/api/auth/join`, and `/api/weeks` with Monday drop & Sunday 11:59 PM WAT cutoff logic. |
 | **Commit 5** | `feat: implement github submission gate, late-access requests, and mentor grants` | Build `/api/weeks/:weekNumber/submit`, duplicate repo check, Approach + AI reflection fields, `LateAccessModal.jsx`, and mentor late-access approval flow. |
 | **Commit 6** | `feat: add clarification tickets with code context and mentor follow-up loop` | Implement `ClarificationDrawer.jsx`, optional code/sandbox snippet support, mentor `follow_up_requested` state, and learner follow-up replies. |
-| **Commit 7** | `feat: build peer gallery, mentor roll-call attendance, cohort strip, and 4-pillar scoring` | Add gated `PeerGalleryDrawer.jsx`, `MentorDashboardView.jsx` (`/mentor`) with roll-call toggles and Cohort Status Strip, weighted `45/25/15/15` scoring, and `.md` export. |
+| **Commit 7** | `feat: build peer gallery, mentor review workflow, and export` | Add gated `PeerGalleryDrawer.jsx`, mentor review/late-access/clarification workflow, and `.md` export. |
 | **Commit 8** | `feat: add deployment config and env examples` | Add root `vercel.json` for Vite client deployment, env examples, and deployment notes; backend deployed separately with persistent hosting. |

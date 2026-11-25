@@ -5,7 +5,7 @@ const RULES = [
   ["4. Projects & Submissions", "Own work only. No copying peers. Submit a valid GitHub repository."],
   ["5. Deadlines & Commitment", "Sunday 11:59 PM WAT cutoff. Communicate early if blocked; mentors can grant late access."],
   ["6. Respect & Community", "No insults, mocking, or harassment. Help others grow."],
-  ["7. Student Scoring", "Projects 40%, Code Quality 20%, Discussion 15%, Weekly Tasks 15%, Collaboration 10%."],
+  ["7. Review & Growth", "Mentors review submissions, give feedback, and may request revisions or follow-up."],
   ["8. Responsibility & Support", "Learners do independent work; mentors guide, clarify, and review."],
 ];
 
@@ -31,8 +31,8 @@ export default function ProgramCharterDrawer({ open, onClose }) {
           ))}
         </div>
         <div className="card" style={{ marginTop: "1rem" }}>
-          <strong>Cadence & Scoring</strong>
-          <p className="muted" style={{ marginBottom: 0 }}>Monday outline drop (WAT). Sunday 23:59:59 WAT submission cutoff. Weighted growth score: 0.40P + 0.20U + 0.15D + 0.15T + 0.10C.</p>
+          <strong>Cadence</strong>
+          <p className="muted" style={{ marginBottom: 0 }}>Monday outline drop (WAT). Sunday 23:59:59 WAT submission cutoff. Communicate early if blocked; mentors can grant late access.</p>
         </div>
       </aside>
       <style>{`

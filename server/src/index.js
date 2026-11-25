@@ -6,7 +6,7 @@ import { v4 as uuid } from "uuid";
 import { db, migrate, seed } from "./db.js";
 import { authRequired, requireRole, signSession } from "./auth.js";
 import { getWeekLockState } from "./scheduleWat.js";
-import { computeWeightedScore } from "./scoring.js";
+
 import curriculum from "./curriculum.json" with { type: "json" };
 
 const app = express();
@@ -213,60 +213,13 @@ app.post("/api/submissions/:id/peer-review", authRequired, requireRole("MENTEE")
   }
 });
 
-app.patch("/api/weeks/:weekNumber/attendance/:userId", authRequired, requireRole("MENTOR"), (req, res) => {
-  const weekNumber = weekNum(req.params.weekNumber);
-  const userId = Number(req.params.userId);
-  const status = ["present", "absent", "excused"].includes(req.body?.status) ? req.body.status : null;
-  if (!weekNumber || !Number.isInteger(userId) || !status) return res.status(400).json({ error: "Invalid request" });
-  const mentee = db.prepare("SELECT id FROM users WHERE id=? AND cohort_id=? AND role='MENTEE'").get(userId, req.user.cohort_id);
-  if (!mentee) return res.status(404).json({ error: "Mentee not found" });
-  db.prepare(`INSERT INTO attendance_records (cohort_id, user_id, week_number, status, updated_by_mentor_id, updated_at)
-    VALUES (?,?,?,?,?,CURRENT_TIMESTAMP)
-    ON CONFLICT(cohort_id, user_id, week_number) DO UPDATE SET status=excluded.status, updated_by_mentor_id=excluded.updated_by_mentor_id, updated_at=CURRENT_TIMESTAMP`)
-    .run(req.user.cohort_id, userId, weekNumber, status, req.user.id);
-  res.json({ ok: true });
-});
-
-app.get("/api/weeks/:weekNumber/attendance", authRequired, requireRole("MENTOR"), (req, res) => {
-  const weekNumber = weekNum(req.params.weekNumber);
-  if (!weekNumber) return res.status(400).json({ error: "Invalid week" });
-  const rows = db.prepare(`
-    SELECT u.id AS user_id, u.display_name, COALESCE(a.status, 'absent') AS status
-    FROM users u LEFT JOIN attendance_records a ON a.user_id=u.id AND a.cohort_id=u.cohort_id AND a.week_number=?
-    WHERE u.cohort_id=? AND u.role='MENTEE' ORDER BY u.display_name`).all(weekNumber, req.user.cohort_id);
-  res.json({ attendance: rows });
-});
-
-app.get("/api/scores/me", authRequired, requireRole("MENTEE"), (req, res) => {
-  const row = db.prepare("SELECT * FROM rubric_scores WHERE user_id=?").get(req.user.id);
-  const attendance = db.prepare("SELECT week_number, status FROM attendance_records WHERE user_id=? ORDER BY week_number").all(req.user.id);
-  const score = computeWeightedScore(row || {});
-  res.json({ score: { ...score, mentorSummary: row?.mentor_summary || "" }, attendance });
-});
-
 app.get("/api/export/me", authRequired, requireRole("MENTEE"), (req, res) => {
   const weeks = db.prepare("SELECT week_number, status FROM weeks WHERE cohort_id=? ORDER BY week_number").all(req.user.cohort_id);
   const progress = db.prepare("SELECT week_number, personal_notes, completed_topic_ids FROM week_progress WHERE user_id=?").all(req.user.id);
   const logs = db.prepare("SELECT week_number, title, url, takeaway, created_at FROM research_logs WHERE user_id=? ORDER BY week_number, created_at").all(req.user.id);
   const submissions = db.prepare("SELECT week_number, github_url, live_url, approach_note, ai_reflection_note, status, mentor_feedback, created_at, updated_at FROM submissions WHERE user_id=? ORDER BY week_number, created_at").all(req.user.id);
   const clarifications = db.prepare("SELECT week_number, topic_id, what_i_tried, question, code_snippet, status, mentor_reply, learner_followup_note, is_pinned_faq, created_at FROM clarifications WHERE user_id=? ORDER BY week_number, created_at").all(req.user.id);
-  const attendance = db.prepare("SELECT week_number, status FROM attendance_records WHERE user_id=? ORDER BY week_number").all(req.user.id);
-  const scoreRow = db.prepare("SELECT * FROM rubric_scores WHERE user_id=?").get(req.user.id);
-  const score = computeWeightedScore(scoreRow || {});
-  res.json({ displayName: req.user.displayName, cohortCode: req.user.cohortCode, weeks, progress, logs, submissions, clarifications, attendance, score: { ...score, mentorSummary: scoreRow?.mentor_summary || "" } });
-});
-
-app.put("/api/mentees/:userId/scores", authRequired, requireRole("MENTOR"), (req, res) => {
-  const userId = Number(req.params.userId);
-  const mentee = db.prepare("SELECT id FROM users WHERE id=? AND cohort_id=? AND role='MENTEE'").get(userId, req.user.cohort_id);
-  if (!mentee) return res.status(404).json({ error: "Mentee not found" });
-  const score = computeWeightedScore(req.body || {});
-  const mentorSummary = String(req.body?.mentorSummary || "").trim();
-  db.prepare(`INSERT INTO rubric_scores (user_id, projects_score, understanding_score, discussion_score, weekly_tasks_score, mentor_summary, updated_at)
-    VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP)
-    ON CONFLICT(user_id) DO UPDATE SET projects_score=excluded.projects_score, understanding_score=excluded.understanding_score, discussion_score=excluded.discussion_score, weekly_tasks_score=excluded.weekly_tasks_score, mentor_summary=excluded.mentor_summary, updated_at=CURRENT_TIMESTAMP`)
-    .run(userId, score.projects, score.understanding, score.discussion, score.weeklyTasks, mentorSummary);
-  res.json({ ok: true, score: { ...score, mentorSummary } });
+  res.json({ displayName: req.user.displayName, cohortCode: req.user.cohortCode, weeks, progress, logs, submissions, clarifications });
 });
 
 app.post("/api/weeks/:weekNumber/submit", authRequired, requireRole("MENTEE"), (req, res) => {

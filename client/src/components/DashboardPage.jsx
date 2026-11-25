@@ -5,6 +5,15 @@ import { formatWat } from "../utils/scheduleWat";
 import { api, getSession } from "../utils/api";
 import ClarificationDrawer from "./ClarificationDrawer";
 
+const STATUS_LABELS = {
+  locked_schedule: "Locked",
+  active_open: "Open",
+  closed_cutoff: "Cutoff passed",
+  late_access_granted: "Late access granted",
+  unlocked: "Unlocked",
+  loading: "Loading",
+};
+
 export default function DashboardPage() {
   const nav = useNavigate();
   const [session] = useState(getSession);
@@ -102,62 +111,103 @@ export default function DashboardPage() {
   const status = activeWeek?.state || "loading";
   const pastCutoff = status === "closed_cutoff";
   const canLateRequest = pastCutoff && lateAccess?.status !== "granted";
+  const statusLabel = STATUS_LABELS[status] || status.replace(/_/g, " ");
+  const submissionLabel = mySubmission ? mySubmission.status.replace(/_/g, " ") : "Not submitted";
 
   return (
-    <main className="ws-page">
-      <div className="container ws-container">
-        <section className="ws-hero">
-          <div>
+    <main className="sd-page">
+      <div className="container sd-wrap">
+        <section className="sd-hero">
+          <div className="sd-hero-main">
             <p className="ws-eyebrow"><span />Mentee workspace</p>
-            <h1 className="ws-title">Week {outline.weekNumber}<span> · {outline.title}</span></h1>
-            <p className="ws-sub">{now} WAT <span className="ws-sep">•</span> <span className="ws-status">{status.replace(/_/g, " ")}</span>{saving ? <span className="ws-save"> · {saving}</span> : null}</p>
+            <h1 className="sd-title">Week {outline.weekNumber}<span>{outline.title}</span></h1>
+            <p className="sd-sub">Research the outline, capture your thinking, and ship before the WAT cutoff.</p>
+            <div className="sd-meta-row">
+              <span className="sd-chip"><span className="sd-dot" />{now} WAT</span>
+              <span className={`sd-chip sd-chip-status is-${status}`}>{statusLabel}</span>
+              {saving && <span className="sd-chip sd-chip-save">{saving}</span>}
+            </div>
           </div>
-          <button className="btn ws-ghost" onClick={() => setClarifyOpen(true)}>Ask for clarification</button>
+          <div className="sd-hero-side">
+            <div className="sd-progress-card">
+              <div className="sd-ring" style={{ "--pct": pct }} aria-hidden="true"><div><strong>{pct}%</strong><span>done</span></div></div>
+              <div className="sd-stats">
+                <div className="sd-stat"><span>Checklist</span><strong>{done}/{total}</strong></div>
+                <div className="sd-stat"><span>Submission</span><strong className={mySubmission ? "is-good" : ""}>{submissionLabel}</strong></div>
+                <div className="sd-stat"><span>Late access</span><strong>{lateAccess?.status || "None"}</strong></div>
+              </div>
+            </div>
+            <button className="btn sd-ghost" onClick={() => setClarifyOpen(true)}>Ask for clarification</button>
+          </div>
         </section>
+
+        {weeks.length > 0 && (
+          <div className="sd-week-strip" aria-label="Weeks">
+            {weeks.map((w) => (
+              <button key={w.weekNumber} type="button" className={`sd-week-pill ${w.weekNumber === activeWeekNum ? "is-active" : ""}`} onClick={() => setActiveWeekNum(w.weekNumber)}>
+                <span>Week {w.weekNumber}</span>
+                <small>{(w.state || "locked").replace(/_/g, " ")}</small>
+              </button>
+            ))}
+          </div>
+        )}
 
         {error && <div className="d-alert">{error}</div>}
 
-        <div className="ws-flow">
-          <section className="ws-card">
-            <header className="ws-card-head">
-              <div className="ws-step"><span>01</span><div><p className="ws-kicker">Research</p><h2>Weekly checklist</h2></div></div>
-              <div className="ws-meta">{done}/{total} complete</div>
+        <div className="sd-grid">
+          <section className="sd-card">
+            <header className="sd-card-head">
+              <div className="sd-step"><span>01</span><div><p className="ws-kicker">Research</p><h2>Weekly checklist</h2></div></div>
+              <div className="sd-head-meta">{done}/{total} complete</div>
             </header>
             <div className="ws-progress" aria-hidden="true"><div style={{ width: `${pct}%` }} /></div>
             <div className="d-topic-list">
-              {outline.outlineTopics.map((t) => (
+              {outline.outlineTopics.map((t, i) => (
                 <label key={t.id} className={`d-topic ${completed.includes(t.id) ? "is-done" : ""}`}>
                   <input type="checkbox" checked={completed.includes(t.id)} onChange={() => toggleTopic(t.id)} />
                   <span className="d-check" aria-hidden="true" />
-                  <div><strong>{t.topic}</strong><div className="d-muted">{t.researchKeywords.join(" · ")}</div></div>
+                  <div className="d-topic-body">
+                    <div className="d-topic-top"><strong>{t.topic}</strong><span className="d-topic-num">0{i + 1}</span></div>
+                    <div className="d-muted">{t.researchKeywords.join(" · ")}</div>
+                  </div>
                 </label>
               ))}
             </div>
           </section>
 
-          <section className="ws-card">
-            <header className="ws-card-head">
-              <div className="ws-step"><span>02</span><div><p className="ws-kicker">Reflect</p><h2>Personal notes</h2></div></div>
-              <div className="ws-meta">{saving || "Autosaved"}</div>
+          <section className="sd-card">
+            <header className="sd-card-head">
+              <div className="sd-step"><span>02</span><div><p className="ws-kicker">Reflect</p><h2>Personal notes</h2></div></div>
+              <div className="sd-head-meta">{saving || "Autosaved"}</div>
             </header>
-            <textarea className="ds-notes" aria-label="Personal notes" rows={9} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Capture what you learned, blockers, and decisions..." />
+            <p className="sd-hint">Capture what you tried, what worked, what confused you, and what to ask next.</p>
+            <textarea className="ds-notes sd-notes" aria-label="Personal notes" rows={10} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Capture what you learned, blockers, decisions, and questions for your mentor..." />
           </section>
 
-          <section className="ws-card">
-            <header className="ws-card-head">
-              <div className="ws-step"><span>03</span><div><p className="ws-kicker">Build</p><h2>Project brief</h2></div></div>
-              <span className={`ds-pill ${mySubmission ? "is-ok" : ""}`}>{mySubmission ? mySubmission.status : "Not submitted"}</span>
+          <section className="sd-card sd-card-build">
+            <header className="sd-card-head">
+              <div className="sd-step"><span>03</span><div><p className="ws-kicker">Build & Ship</p><h2>Project brief</h2></div></div>
+              <span className={`ds-pill ${mySubmission ? "is-ok" : ""}`}>{submissionLabel}</span>
             </header>
-            <h3 className="ds-brief-title">{outline.projectBrief.title}</h3>
-            <p className="ds-muted">{outline.projectBrief.description}</p>
-            <ul className="ds-list">{outline.projectBrief.acceptanceCriteria.map((c) => <li key={c}>{c}</li>)}</ul>
-            <div className="ws-brief-footer">
-              <p className="ds-muted ws-brief-note">{pastCutoff ? "WAT cutoff passed." : "Due Sunday 11:59 PM WAT."}{lateAccess ? ` Late access: ${lateAccess.status}.` : ""}</p>
-              {canLateRequest ? (
-                <button type="button" className="btn btn-primary ds-submit-btn" onClick={() => { setLateError(""); setLateOpen(true); }}>Request late submission</button>
-              ) : (
-                <button type="button" className="btn btn-primary ds-submit-btn" onClick={() => { setSubmitError(""); setSubmitOpen(true); }}>{mySubmission ? "Resubmit project" : "Submit project"}</button>
-              )}
+            <div className="sd-brief">
+              <div>
+                <h3 className="ds-brief-title">{outline.projectBrief.title}</h3>
+                <p className="ds-muted">{outline.projectBrief.description}</p>
+                <ul className="ds-list">{outline.projectBrief.acceptanceCriteria.map((c) => <li key={c}>{c}</li>)}</ul>
+              </div>
+              <div className="sd-brief-aside">
+                <div className="sd-deadline">
+                  <span className="sd-deadline-label">Deadline</span>
+                  <strong>Sunday 11:59 PM</strong>
+                  <span>WAT cutoff</span>
+                </div>
+                <div className="sd-brief-note">{pastCutoff ? "Cutoff passed. Request late access if needed." : "Submit before cutoff to stay on track."}{lateAccess ? ` Late access: ${lateAccess.status}.` : ""}</div>
+                {canLateRequest ? (
+                  <button type="button" className="btn btn-primary ds-submit-btn" onClick={() => { setLateError(""); setLateOpen(true); }}>Request late submission</button>
+                ) : (
+                  <button type="button" className="btn btn-primary ds-submit-btn" onClick={() => { setSubmitError(""); setSubmitOpen(true); }}>{mySubmission ? "Resubmit project" : "Submit project"}</button>
+                )}
+              </div>
             </div>
           </section>
         </div>

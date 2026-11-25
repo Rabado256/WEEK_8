@@ -1,8 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, getSession } from "../utils/api";
+import { api, clearSession, getSession } from "../utils/api";
 import ClarificationDrawer from "./ClarificationDrawer";
 import curriculum from "../data/curriculum.json";
+
+const Icon = ({ d, size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
+);
+const icons = {
+  dashboard: "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z",
+  users: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",
+  request: "M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M8.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM20 8v6M23 11h-6",
+  explore: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36z",
+  message: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+  settings: "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+  logout: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
+  bell: "M18 8A6 6 0 0 0 6 8c0 7-3 7-3 7h18s-3 0-3-7M13.73 21a2 2 0 0 1-3.46 0",
+  external: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3",
+  check: "M20 6L9 17l-5-5",
+  x: "M18 6L6 18M6 6l12 12",
+};
+const navItems = [
+  { label: "Dashboard", icon: icons.dashboard, active: true },
+  { label: "My Mentees", icon: icons.users },
+  { label: "Requests", icon: icons.request },
+  { label: "Explore Startups", icon: icons.explore },
+  { label: "Messages", icon: icons.message },
+  { label: "Settings", icon: icons.settings },
+];
 
 export default function MentorDashboardPage() {
   const nav = useNavigate();
@@ -14,15 +39,14 @@ export default function MentorDashboardPage() {
   const [error, setError] = useState("");
   const [busyKeys, setBusyKeys] = useState(new Set());
   const [clarifyOpen, setClarifyOpen] = useState(false);
-  const isBusy = (key) => busyKeys.has(key);
+  const _isBusy = (key) => busyKeys.has(key);
   const itemBusy = (prefix, id) => [...busyKeys].some((k) => k.startsWith(`${prefix}-${id}`));
+  const initials = (name = "") => name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("") || "M";
 
   async function load() {
     const [w, o, s, r] = await Promise.all([
-      api("/api/weeks"),
-      api("/api/mentor/overview?week=1"),
-      api("/api/mentor/submissions?week=1"),
-      api("/api/mentor/late-access?week=1"),
+      api("/api/weeks"), api("/api/mentor/overview?week=1"),
+      api("/api/mentor/submissions?week=1"), api("/api/mentor/late-access?week=1"),
     ]);
     setWeeks(w.weeks || []); setOverview(o); setSubmissions(s.submissions || []); setRequests(r.requests || []);
   }
@@ -30,154 +54,185 @@ export default function MentorDashboardPage() {
   useEffect(() => {
     if (!session?.token) { nav("/login"); return; }
     let cancelled = false;
-    (async () => {
-      try {
-        const [w, o, s, r] = await Promise.all([
-          api("/api/weeks"),
-          api("/api/mentor/overview?week=1"),
-          api("/api/mentor/submissions?week=1"),
-          api("/api/mentor/late-access?week=1"),
-        ]);
-        if (cancelled) return;
-        setWeeks(w.weeks || []); setOverview(o); setSubmissions(s.submissions || []); setRequests(r.requests || []);
-      } catch (e) { if (!cancelled) setError(e.message); }
-    })();
+    (async () => { try { await load(); } catch (e) { if (!cancelled) setError(e.message); } })();
     return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, nav]);
 
   async function withBusy(key, fn) {
     setBusyKeys((s) => new Set(s).add(key)); setError("");
-    try { await fn(); await load(); }
-    catch (e) { setError(e.message); }
+    try { await fn(); await load(); } catch (e) { setError(e.message); }
     finally { setBusyKeys((s) => { const n = new Set(s); n.delete(key); return n; }); }
   }
-
   async function review(id, status) {
     const mentorFeedback = window.prompt("Mentor feedback (optional):", "") || "";
     await withBusy(`review-${id}-${status}`, () => api(`/api/submissions/${id}/review`, { method: "PATCH", body: { status, mentorFeedback } }));
   }
-
   async function decideLate(id, decision) {
     const mentorNote = window.prompt("Mentor note (optional):", "") || "";
     const grantedUntilWat = decision === "granted" ? window.prompt("Granted until WAT ISO (optional):", "") || "" : "";
     await withBusy(`late-${id}-${decision}`, () => api(`/api/late-access/${id}/decision`, { method: "PATCH", body: { decision, mentorNote, grantedUntilWat } }));
   }
+  function logout() { clearSession(); nav("/login"); }
 
   const metrics = useMemo(() => ([
-    ["Submitted", overview?.counts?.submitted ?? 0, "Repos received"],
-    ["Past Cutoff", overview?.counts?.lockedPastCutoff ?? 0, "Need attention"],
-    ["Late Access", overview?.counts?.lateAccess ?? 0, "Pending decisions"],
-    ["Follow-Ups", overview?.counts?.followUps ?? 0, "Review queue"],
-    ["Clarifications", overview?.counts?.openClarifications ?? 0, "Open tickets"],
+    { icon: "M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4L12 14.01l-3-3", value: overview?.counts?.submitted ?? 0, label: "Submissions", note: "Repos received this week" },
+    { icon: "M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z", value: overview?.counts?.lockedPastCutoff ?? 0, label: "Past Cutoff", note: "Need mentor attention" },
+    { icon: "M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M8.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM20 8v6M23 11h-6", value: overview?.counts?.lateAccess ?? 0, label: "Late Access", note: "Pending decisions" },
   ]), [overview]);
 
-  const initials = (name = "") => name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("") || "M";
-  const focusCount = (overview?.counts?.lateAccess ?? 0) + (overview?.counts?.followUps ?? 0) + (overview?.counts?.openClarifications ?? 0);
+  const pendingRequests = requests.filter((r) => r.status === "pending");
+  const recentChats = useMemo(() => submissions.slice(0, 4).map((s, i) => ({
+    id: s.id, name: s.display_name,
+    snippet: s.approach_note || "Submitted a repository for review.",
+    time: i === 0 ? "Just now" : i === 1 ? "1h ago" : i === 2 ? "Yesterday" : "2d ago",
+    unread: i < 2,
+  })), [submissions]);
+
+  const mentorName = session?.user?.displayName || "Mentor";
+  const mentorInitials = initials(mentorName);
 
   return (
-    <main className="sd-page md-page">
-      <div className="container sd-wrap md-wrap">
-        <section className="sd-hero md-hero">
-          <div className="sd-hero-main">
-            <p className="ws-eyebrow"><span />Mentor workspace</p>
-            <h1 className="sd-title">Cohort<span>Command Center</span></h1>
-            <p className="sd-sub">Review submissions, manage late access, and respond to clarifications from one calm, focused dashboard.</p>
-            <div className="sd-meta-row">
-              <span className="sd-chip"><span className="sd-dot" />Week 1 operations</span>
-              <span className="sd-chip sd-chip-status is-active_open">{overview?.mentees?.length ?? 0} mentees</span>
-              <span className="sd-chip">{focusCount} action items</span>
-              {busyKeys.size > 0 && <span className="sd-chip sd-chip-save">Updating...</span>}
-            </div>
-          </div>
-          <div className="sd-hero-side">
-            <div className="sd-progress-card md-focus-card">
-              <div className="md-focus">
-                <span className="sd-deadline-label">Needs attention</span>
-                <strong>{focusCount}</strong>
-                <span>reviews, requests, and clarifications</span>
-              </div>
-              <div className="sd-stats">
-                <div className="sd-stat"><span>Submissions</span><strong>{overview?.counts?.submitted ?? 0}</strong></div>
-                <div className="sd-stat"><span>Past cutoff</span><strong>{overview?.counts?.lockedPastCutoff ?? 0}</strong></div>
-                <div className="sd-stat"><span>Open clarifications</span><strong>{overview?.counts?.openClarifications ?? 0}</strong></div>
-              </div>
-            </div>
-            <button className="btn sd-ghost" onClick={() => setClarifyOpen(true)}>Open clarifications</button>
-          </div>
-        </section>
-
-        {error && <div className="d-alert">{error}</div>}
-
-        <section className="md-metrics" aria-label="Cohort metrics">
-          {metrics.map(([label, value, hint]) => (
-            <article key={label} className="md-metric">
-              <span className="sd-deadline-label">{label}</span>
-              <strong>{value}</strong>
-              <p>{hint}</p>
-            </article>
+    <div className="ad-shell">
+      <aside className="ad-rail">
+        <div className="ad-brand">
+          <div className="ad-logo">D8</div>
+          <div><strong>Dev8</strong><span>Mentor Portal</span></div>
+        </div>
+        <nav className="ad-nav" aria-label="Mentor navigation">
+          {navItems.map((item) => (
+            <button key={item.label} type="button" className={`ad-nav-item${item.active ? " is-active" : ""}`}>
+              <Icon d={item.icon} /><span>{item.label}</span>
+            </button>
           ))}
-        </section>
+        </nav>
+        <button type="button" className="ad-logout" onClick={logout}><Icon d={icons.logout} /><span>Logout</span></button>
+      </aside>
 
-        <div className="md-main-grid">
-          <section className="sd-card md-card">
-            <header className="sd-card-head"><div className="sd-step"><span>01</span><div><p className="ws-kicker">Review</p><h2>Week 1 submissions</h2></div></div><div className="sd-head-meta">{submissions.length} items</div></header>
-            <div className="md-list">
+      <div className="ad-main">
+        <header className="ad-topbar">
+          <div className="ad-breadcrumb"><span>Portal</span><span className="ad-sep">/</span><strong>Dashboard</strong></div>
+          <div className="ad-topbar-right">
+            <button type="button" className="ad-icon-btn" aria-label="Notifications" onClick={() => setClarifyOpen(true)}>
+              <Icon d={icons.bell} />{(overview?.counts?.openClarifications ?? 0) > 0 && <span className="ad-dot" />}
+            </button>
+            <div className="ad-user">
+              <div className="ad-avatar ad-avatar-sm">{mentorInitials}</div>
+              <div><strong>{mentorName}</strong><button type="button" onClick={() => setClarifyOpen(true)}>View clarifications</button></div>
+            </div>
+          </div>
+        </header>
+
+        <div className="ad-canvas">
+          {error && <div className="d-alert">{error}</div>}
+
+          <section className="ad-page-head">
+            <p className="ad-eyebrow">MENTOR DASHBOARD</p>
+            <h1>Good day, {mentorName.split(/\s+/)[0]}.</h1>
+            <p>Track submissions, review requests, and keep your cohort moving forward.</p>
+          </section>
+
+
+          <section className="ad-metrics" aria-label="Summary metrics">
+            {metrics.map((m) => (
+              <article key={m.label} className="ad-metric">
+                <div className="ad-metric-icon"><Icon d={m.icon} size={20} /></div>
+                <div><strong>{m.value}</strong><div className="ad-metric-label">{m.label}</div><p>{m.note}</p></div>
+              </article>
+            ))}
+          </section>
+
+          <section className="ad-card">
+            <div className="ad-card-head">
+              <div><p className="ad-eyebrow">COHORT</p><h2>Recent Mentees</h2></div>
+              <span className="ad-link-muted">{submissions.length} submissions</span>
+            </div>
+            <div className="ad-list">
               {submissions.length ? submissions.map((s) => (
-                <article key={s.id} className="md-item">
-                  <div className="md-item-top">
-                    <div className="md-person">
-                      <div className="md-avatar" aria-hidden="true">{initials(s.display_name)}</div>
-                      <div>
-                        <div className="md-item-title"><strong>{s.display_name}</strong><span className={`md-status is-${s.status}`}>{s.status.replace(/_/g, " ")}</span></div>
-                        <a className="md-link" href={s.github_url} target="_blank" rel="noreferrer">{s.github_url}</a>
-                      </div>
-                    </div>
-                    <div className="md-actions">
-                      <button className="btn md-btn-approve" disabled={itemBusy("review", s.id)} onClick={()=>review(s.id,"approved")}>{isBusy(`review-${s.id}-approved`) ? "..." : "Approve"}</button>
-                      <button className="btn md-btn-warn" disabled={itemBusy("review", s.id)} onClick={()=>review(s.id,"needs_revision")}>{isBusy(`review-${s.id}-needs_revision`) ? "..." : "Needs revision"}</button>
-                      <button className="btn" disabled={itemBusy("review", s.id)} onClick={()=>review(s.id,"follow_up_requested")}>{isBusy(`review-${s.id}-follow_up_requested`) ? "..." : "Follow-up"}</button>
+                <div key={s.id} className="ad-row">
+                  <div className="ad-row-main">
+                    <div className="ad-avatar">{initials(s.display_name)}</div>
+                    <div className="ad-row-text">
+                      <strong>{s.display_name}</strong>
+                      <span>{s.approach_note ? s.approach_note.slice(0, 72) + (s.approach_note.length > 72 ? "…" : "") : "Week 1 submission"}</span>
                     </div>
                   </div>
-                  <p className="md-note"><span>Approach</span>{s.approach_note}</p>
-                </article>
-              )) : <div className="md-empty">No submissions yet. New student repos will appear here.</div>}
+                  <div className="ad-row-end">
+                    <span className={`ad-badge is-${s.status}`}>{s.status.replace(/_/g, " ")}</span>
+                    <div className="ad-row-actions">
+                      <a className="ad-icon-btn ad-icon-btn-sm" href={s.github_url} target="_blank" rel="noreferrer" aria-label="Open repo"><Icon d={icons.external} size={15} /></a>
+                      <button type="button" className="ad-icon-btn ad-icon-btn-sm" aria-label="Review" onClick={() => review(s.id, "approved")} disabled={itemBusy("review", s.id)}><Icon d={icons.check} size={15} /></button>
+                    </div>
+                  </div>
+                </div>
+              )) : <div className="ad-empty">No submissions yet.</div>}
             </div>
           </section>
 
-          <div className="md-side-stack">
-            <section className="sd-card md-card">
-              <header className="sd-card-head"><div className="sd-step"><span>02</span><div><p className="ws-kicker">Decide</p><h2>Late access</h2></div></div><div className="sd-head-meta">{requests.length} requests</div></header>
-              <div className="md-list">
-                {requests.length ? requests.map((r) => (
-                  <article key={r.id} className="md-item md-item-compact">
-                    <div className="md-item-top">
-                      <div className="md-person">
-                        <div className="md-avatar" aria-hidden="true">{initials(r.display_name)}</div>
-                        <div><div className="md-item-title"><strong>{r.display_name}</strong><span className={`md-status is-${r.status}`}>{r.status}</span></div><p className="md-note md-note-plain">{r.reason}</p></div>
+          <div className="ad-split">
+            <section className="ad-card">
+              <div className="ad-card-head">
+                <div className="ad-title-row"><p className="ad-eyebrow">ACTION</p><h2>Pending Requests</h2><span className="ad-count">{pendingRequests.length}</span></div>
+              </div>
+              <div className="ad-list">
+                {pendingRequests.length ? pendingRequests.map((r) => (
+                  <div key={r.id} className="ad-row">
+                    <div className="ad-row-main">
+                      <div className="ad-avatar">{initials(r.display_name)}</div>
+                      <div className="ad-row-text">
+                        <strong>{r.display_name}</strong>
+                        <span>{r.reason ? r.reason.slice(0, 64) + (r.reason.length > 64 ? "…" : "") : "Late access request"}</span>
                       </div>
-                      <div className="md-actions"><button className="btn md-btn-approve" disabled={itemBusy("late", r.id)} onClick={()=>decideLate(r.id,"granted")}>{isBusy(`late-${r.id}-granted`) ? "..." : "Grant"}</button><button className="btn" disabled={itemBusy("late", r.id)} onClick={()=>decideLate(r.id,"declined")}>{isBusy(`late-${r.id}-declined`) ? "..." : "Decline"}</button></div>
                     </div>
-                  </article>
-                )) : <div className="md-empty">No late-access requests.</div>}
+                    <div className="ad-row-actions">
+                      <button type="button" className="ad-icon-btn ad-icon-btn-sm ad-btn-ok" aria-label="Grant" disabled={itemBusy("late", r.id)} onClick={() => decideLate(r.id, "granted")}><Icon d={icons.check} size={15} /></button>
+                      <button type="button" className="ad-icon-btn ad-icon-btn-sm ad-btn-no" aria-label="Decline" disabled={itemBusy("late", r.id)} onClick={() => decideLate(r.id, "declined")}><Icon d={icons.x} size={15} /></button>
+                    </div>
+                  </div>
+                )) : <div className="ad-empty">No pending requests.</div>}
+              </div>
+            </section>
+
+            <section className="ad-card">
+              <div className="ad-card-head">
+                <div><p className="ad-eyebrow">MESSAGES</p><h2>Recent Chats</h2></div>
+                <button type="button" className="ad-link-muted ad-link-btn" onClick={() => setClarifyOpen(true)}>Open Messages</button>
+              </div>
+              <div className="ad-list">
+                {recentChats.length ? recentChats.map((c) => (
+                  <div key={c.id} className="ad-row">
+                    <div className="ad-row-main">
+                      <div className="ad-avatar">{initials(c.name)}</div>
+                      <div className="ad-row-text">
+                        <strong>{c.name}</strong>
+                        <span>{c.snippet.slice(0, 58)}{c.snippet.length > 58 ? "…" : ""}</span>
+                      </div>
+                    </div>
+                    <div className="ad-chat-meta">
+                      <span>{c.time}</span>
+                      {c.unread && <span className="ad-unread" aria-label="Unread" />}
+                    </div>
+                  </div>
+                )) : <div className="ad-empty">No recent messages.</div>}
               </div>
             </section>
           </div>
+
+          <section className="ad-card">
+            <div className="ad-card-head"><div><p className="ad-eyebrow">TIMELINE</p><h2>Week States</h2></div></div>
+            <div className="md-week-grid">
+              {weeks.map((w) => (
+                <div key={w.weekNumber} className="md-week">
+                  <div className="md-week-top"><strong>Week {w.weekNumber}</strong><span className={`md-status is-${w.state}`}>{(w.state || "locked").replace(/_/g, " ")}</span></div>
+                  <p>{curriculum.weeks.find((cw) => cw.weekNumber === w.weekNumber)?.title || "Scheduled week"}</p>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
-
-        <section className="sd-card md-card">
-          <header className="sd-card-head"><div className="sd-step"><span>03</span><div><p className="ws-kicker">Timeline</p><h2>Week states</h2></div></div></header>
-          <div className="md-week-grid">
-            {weeks.map((w) => (
-              <div key={w.weekNumber} className="md-week">
-                <div className="md-week-top"><strong>Week {w.weekNumber}</strong><span className={`md-status is-${w.state}`}>{(w.state || "locked").replace(/_/g, " ")}</span></div>
-                <p>{curriculum.weeks.find((cw)=>cw.weekNumber===w.weekNumber)?.title || "Scheduled week"}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <ClarificationDrawer open={clarifyOpen} onClose={() => setClarifyOpen(false)} weekNumber={1} topics={curriculum.weeks[0]?.outlineTopics || []} role="MENTOR" />
       </div>
-    </main>
+
+      <ClarificationDrawer open={clarifyOpen} onClose={() => setClarifyOpen(false)} weekNumber={1} topics={curriculum.weeks[0]?.outlineTopics || []} role="MENTOR" />
+    </div>
   );
 }

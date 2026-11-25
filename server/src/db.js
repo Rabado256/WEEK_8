@@ -54,7 +54,7 @@ export function migrate() {
       cohort_id INTEGER NOT NULL REFERENCES cohorts(id) ON DELETE CASCADE,
       week_number INTEGER NOT NULL CHECK (week_number BETWEEN 1 AND 8),
       reason TEXT NOT NULL,
-      blockers TEXT DEFAULT '',
+
       requested_until_wat TEXT,
       status TEXT DEFAULT 'pending' CHECK (status IN ('pending','granted','declined')),
       granted_until_wat TEXT,

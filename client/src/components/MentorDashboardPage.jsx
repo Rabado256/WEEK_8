@@ -12,8 +12,10 @@ export default function MentorDashboardPage() {
   const [submissions, setSubmissions] = useState([]);
   const [requests, setRequests] = useState([]);
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState("");
+  const [busyKeys, setBusyKeys] = useState(new Set());
   const [clarifyOpen, setClarifyOpen] = useState(false);
+  const isBusy = (key) => busyKeys.has(key);
+  const itemBusy = (prefix, id) => [...busyKeys].some((k) => k.startsWith(`${prefix}-${id}`));
 
   async function load() {
     const [w, o, s, r] = await Promise.all([
@@ -44,10 +46,10 @@ export default function MentorDashboardPage() {
   }, [session, nav]);
 
   async function withBusy(key, fn) {
-    setBusy(key); setError("");
+    setBusyKeys((s) => new Set(s).add(key)); setError("");
     try { await fn(); await load(); }
     catch (e) { setError(e.message); }
-    finally { setBusy(""); }
+    finally { setBusyKeys((s) => { const n = new Set(s); n.delete(key); return n; }); }
   }
 
   async function review(id, status) {
@@ -80,7 +82,7 @@ export default function MentorDashboardPage() {
             <div className="sd-meta-row">
               <span className="sd-chip"><span className="sd-dot" />Week 1 operations</span>
               <span className="sd-chip sd-chip-status is-active_open">{overview?.mentees?.length ?? 0} mentees</span>
-              {busy && <span className="sd-chip sd-chip-save">Working...</span>}
+              {busyKeys.size > 0 && <span className="sd-chip sd-chip-save">Working...</span>}
             </div>
           </div>
           <div className="sd-hero-side">
@@ -124,9 +126,9 @@ export default function MentorDashboardPage() {
                       <a className="md-link" href={s.github_url} target="_blank" rel="noreferrer">{s.github_url}</a>
                     </div>
                     <div className="md-actions">
-                      <button className="btn" disabled={!!busy} onClick={()=>review(s.id,"approved")}>Approve</button>
-                      <button className="btn" disabled={!!busy} onClick={()=>review(s.id,"needs_revision")}>Needs revision</button>
-                      <button className="btn" disabled={!!busy} onClick={()=>review(s.id,"follow_up_requested")}>Follow-up</button>
+                      <button className="btn" disabled={itemBusy("review", s.id)} onClick={()=>review(s.id,"approved")}>{isBusy(`review-${s.id}-approved`) ? "..." : "Approve"}</button>
+                      <button className="btn" disabled={itemBusy("review", s.id)} onClick={()=>review(s.id,"needs_revision")}>{isBusy(`review-${s.id}-needs_revision`) ? "..." : "Needs revision"}</button>
+                      <button className="btn" disabled={itemBusy("review", s.id)} onClick={()=>review(s.id,"follow_up_requested")}>{isBusy(`review-${s.id}-follow_up_requested`) ? "..." : "Follow-up"}</button>
                     </div>
                   </div>
                   <p className="md-note"><span>Approach</span>{s.approach_note}</p>
@@ -143,7 +145,7 @@ export default function MentorDashboardPage() {
                   <article key={r.id} className="md-item md-item-compact">
                     <div className="md-item-top">
                       <div><div className="md-item-title"><strong>{r.display_name}</strong><span className={`md-status is-${r.status}`}>{r.status}</span></div><p className="md-note md-note-plain">{r.reason}</p></div>
-                      <div className="md-actions"><button className="btn" disabled={!!busy} onClick={()=>decideLate(r.id,"granted")}>Grant</button><button className="btn" disabled={!!busy} onClick={()=>decideLate(r.id,"declined")}>Decline</button></div>
+                      <div className="md-actions"><button className="btn" disabled={itemBusy("late", r.id)} onClick={()=>decideLate(r.id,"granted")}>{isBusy(`late-${r.id}-granted`) ? "..." : "Grant"}</button><button className="btn" disabled={itemBusy("late", r.id)} onClick={()=>decideLate(r.id,"declined")}>{isBusy(`late-${r.id}-declined`) ? "..." : "Decline"}</button></div>
                     </div>
                   </article>
                 )) : <p className="ds-muted">No late-access requests.</p>}

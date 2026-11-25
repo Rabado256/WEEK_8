@@ -253,12 +253,11 @@ app.post("/api/weeks/:weekNumber/late-access", authRequired, requireRole("MENTEE
   if (!weekNumber) return res.status(400).json({ error: "Invalid week" });
   const reason = String(req.body?.reason || "").trim();
   if (!reason) return res.status(400).json({ error: "Reason required" });
-  const blockers = String(req.body?.blockers || "").trim();
   const requestedUntil = String(req.body?.requestedUntilWat || "").trim() || null;
-  db.prepare(`INSERT INTO late_access_requests (user_id, cohort_id, week_number, reason, blockers, requested_until_wat, status, updated_at)
-    VALUES (?,?,?,?,?,?,'pending',CURRENT_TIMESTAMP)
-    ON CONFLICT(user_id, week_number) DO UPDATE SET reason=excluded.reason, blockers=excluded.blockers, requested_until_wat=excluded.requested_until_wat, status='pending', updated_at=CURRENT_TIMESTAMP`)
-    .run(req.user.id, req.user.cohort_id, weekNumber, reason, blockers, requestedUntil);
+  db.prepare(`INSERT INTO late_access_requests (user_id, cohort_id, week_number, reason, requested_until_wat, status, updated_at)
+    VALUES (?,?,?,?,?,'pending',CURRENT_TIMESTAMP)
+    ON CONFLICT(user_id, week_number) DO UPDATE SET reason=excluded.reason, requested_until_wat=excluded.requested_until_wat, status='pending', updated_at=CURRENT_TIMESTAMP`)
+    .run(req.user.id, req.user.cohort_id, weekNumber, reason, requestedUntil);
   res.status(201).json({ ok: true });
 });
 

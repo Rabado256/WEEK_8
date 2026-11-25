@@ -27,7 +27,7 @@ export default function DashboardPage() {
   const [mySubmission, setMySubmission] = useState(null);
   const [lateAccess, setLateAccess] = useState(null);
   const [submitForm, setSubmitForm] = useState({ githubUrl: "", liveUrl: "", approachNote: "", aiReflectionNote: "" });
-  const [lateForm, setLateForm] = useState({ reason: "", blockers: "", requestedUntilWat: "" });
+  const [lateForm, setLateForm] = useState({ reason: "", requestedUntilWat: "" });
   const [submitOpen, setSubmitOpen] = useState(false);
   const [lateOpen, setLateOpen] = useState(false);
   const [clarifyOpen, setClarifyOpen] = useState(false);
@@ -181,7 +181,7 @@ export default function DashboardPage() {
               <div className="sd-head-meta">{saving || "Autosaved"}</div>
             </header>
             <p className="sd-hint">Capture what you tried, what worked, what confused you, and what to ask next.</p>
-            <textarea className="ds-notes sd-notes" aria-label="Personal notes" rows={10} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Capture what you learned, blockers, decisions, and questions for your mentor..." />
+            <textarea className="ds-notes sd-notes" aria-label="Personal notes" rows={10} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Capture what you learned, decisions, and questions for your mentor..." />
           </section>
 
           <section className="sd-card sd-card-build">
@@ -234,7 +234,7 @@ export default function DashboardPage() {
             <div className="drawer-head"><div><span className="pill">Late access</span><h2 style={{ margin: ".5rem 0 0" }}>Week {activeWeekNum}</h2></div><button type="button" className="btn" onClick={() => setLateOpen(false)}>Close</button></div>
             <div className="grid" style={{ gap: ".75rem" }}>
               <label className="grid" style={{ gap: ".35rem" }}><span>Reason</span><textarea required rows={4} value={lateForm.reason} onChange={(e)=>setLateForm({...lateForm,reason:e.target.value})} /></label>
-              <label className="grid" style={{ gap: ".35rem" }}><span>Blockers/progress</span><textarea rows={3} value={lateForm.blockers} onChange={(e)=>setLateForm({...lateForm,blockers:e.target.value})} /></label>
+
               <label className="grid" style={{ gap: ".35rem" }}><span>Requested until (WAT ISO, optional)</span><input value={lateForm.requestedUntilWat} onChange={(e)=>setLateForm({...lateForm,requestedUntilWat:e.target.value})} placeholder="2026-11-25T23:59:59+01:00" /></label>
               {lateError && <div className="d-alert">{lateError}</div>}
               <button className="btn btn-primary" type="submit" disabled={requestingLate}>{requestingLate ? "Sending..." : "Send request"}</button>

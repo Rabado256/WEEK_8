@@ -106,7 +106,7 @@ To align with modern learning platform onboarding while honoring Dev8's Quiet UI
 ### Feature 3: Late-Submission Reason & Mentor Access Grant Flow (Rule #5)
 * **Submitting a Reason for Non-Submission:** If a learner misses or cannot meet the **Sunday 11:59 PM WAT** deadline—or is locked out past cutoff—they can submit a **Late-Submission / Non-Submission Reason** stating:
   * *Why the submission was missed or delayed*
-  * *Current progress / blockers*
+  * *Current progress*
   * *Requested submission window / target date*
 * **Mentor Access Grant:** Mentors review pending reason requests in their triage drawer and can **Grant Submission Access** (setting `late_access_granted = TRUE` and optional `access_expires_at` timestamp in `WAT`), immediately enabling the learner's GitHub submission form for that week, or **Decline / Request Check-In** with a note.
 
@@ -240,7 +240,7 @@ All authenticated routes require `Authorization: Bearer <session_token>`.
 | `GET` | `/api/weeks` | Both | Returns all 8 outlines with Monday drop dates, Sunday 11:59 PM WAT cutoffs, lock states (`locked_schedule`, `active_open`, `closed_cutoff`, `late_access_granted`, `locked_submission`, `unlocked`), and late-access status. |
 | `PATCH` | `/api/weeks/:weekNumber/progress` | Mentee | Saves researched topic checkmarks & personal notes `{ completedTopicIds, personalNotes }`. |
 | `POST` | `/api/weeks/:weekNumber/research-logs` | Mentee | Adds an independent resource/takeaway entry `{ title, url, takeaway }`. |
-| `POST` | `/api/weeks/:weekNumber/late-access` | Mentee | Submits reason for non-submission / missed cutoff `{ reason, blockers, requestedUntilWat }`. |
+| `POST` | `/api/weeks/:weekNumber/late-access` | Mentee | Submits reason for non-submission / missed cutoff `{ reason, requestedUntilWat }`. |
 | `PATCH` | `/api/late-access/:id/decision` | Mentor | Mentor grants or declines late submission access `{ decision: "granted" \| "declined", grantedUntilWat, mentorNote }`. |
 | `POST` | `/api/weeks/:weekNumber/submit` | Mentee | Submits `{ githubUrl, liveUrl, approachNote, aiReflectionNote }` if within cutoff, granted late access, or revision/follow-up requested. Unlocks Week $N + 1$. |
 | `PATCH` | `/api/submissions/:id/review` | Mentor | Sets review state `{ status: "approved" \| "needs_revision" \| "follow_up_requested", mentorFeedback }`. |
@@ -301,7 +301,6 @@ CREATE TABLE late_access_requests (
   cohort_id INTEGER REFERENCES cohorts(id) ON DELETE CASCADE,
   week_number INTEGER NOT NULL CHECK (week_number BETWEEN 1 AND 8),
   reason TEXT NOT NULL,
-  blockers TEXT DEFAULT '',
   requested_until_wat TIMESTAMP,
   status VARCHAR(24) DEFAULT 'pending' CHECK (status IN ('pending', 'granted', 'declined')),
   granted_until_wat TIMESTAMP,

@@ -71,6 +71,9 @@ export default function MentorDashboardPage() {
     ["Clarifications", overview?.counts?.openClarifications ?? 0, "Open tickets"],
   ]), [overview]);
 
+  const initials = (name = "") => name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("") || "M";
+  const focusCount = (overview?.counts?.lateAccess ?? 0) + (overview?.counts?.followUps ?? 0) + (overview?.counts?.openClarifications ?? 0);
+
   return (
     <main className="sd-page md-page">
       <div className="container sd-wrap md-wrap">
@@ -78,19 +81,20 @@ export default function MentorDashboardPage() {
           <div className="sd-hero-main">
             <p className="ws-eyebrow"><span />Mentor workspace</p>
             <h1 className="sd-title">Cohort<span>Command Center</span></h1>
-            <p className="sd-sub">Review submissions, manage late access, and respond to clarifications from one clear workspace.</p>
+            <p className="sd-sub">Review submissions, manage late access, and respond to clarifications from one calm, focused dashboard.</p>
             <div className="sd-meta-row">
               <span className="sd-chip"><span className="sd-dot" />Week 1 operations</span>
               <span className="sd-chip sd-chip-status is-active_open">{overview?.mentees?.length ?? 0} mentees</span>
-              {busyKeys.size > 0 && <span className="sd-chip sd-chip-save">Working...</span>}
+              <span className="sd-chip">{focusCount} action items</span>
+              {busyKeys.size > 0 && <span className="sd-chip sd-chip-save">Updating...</span>}
             </div>
           </div>
           <div className="sd-hero-side">
             <div className="sd-progress-card md-focus-card">
               <div className="md-focus">
-                <span className="sd-deadline-label">Focus now</span>
-                <strong>{(overview?.counts?.lateAccess ?? 0) + (overview?.counts?.followUps ?? 0) + (overview?.counts?.openClarifications ?? 0)}</strong>
-                <span>items need mentor action</span>
+                <span className="sd-deadline-label">Needs attention</span>
+                <strong>{focusCount}</strong>
+                <span>reviews, requests, and clarifications</span>
               </div>
               <div className="sd-stats">
                 <div className="sd-stat"><span>Submissions</span><strong>{overview?.counts?.submitted ?? 0}</strong></div>
@@ -121,19 +125,22 @@ export default function MentorDashboardPage() {
               {submissions.length ? submissions.map((s) => (
                 <article key={s.id} className="md-item">
                   <div className="md-item-top">
-                    <div>
-                      <div className="md-item-title"><strong>{s.display_name}</strong><span className={`md-status is-${s.status}`}>{s.status.replace(/_/g, " ")}</span></div>
-                      <a className="md-link" href={s.github_url} target="_blank" rel="noreferrer">{s.github_url}</a>
+                    <div className="md-person">
+                      <div className="md-avatar" aria-hidden="true">{initials(s.display_name)}</div>
+                      <div>
+                        <div className="md-item-title"><strong>{s.display_name}</strong><span className={`md-status is-${s.status}`}>{s.status.replace(/_/g, " ")}</span></div>
+                        <a className="md-link" href={s.github_url} target="_blank" rel="noreferrer">{s.github_url}</a>
+                      </div>
                     </div>
                     <div className="md-actions">
-                      <button className="btn" disabled={itemBusy("review", s.id)} onClick={()=>review(s.id,"approved")}>{isBusy(`review-${s.id}-approved`) ? "..." : "Approve"}</button>
-                      <button className="btn" disabled={itemBusy("review", s.id)} onClick={()=>review(s.id,"needs_revision")}>{isBusy(`review-${s.id}-needs_revision`) ? "..." : "Needs revision"}</button>
+                      <button className="btn md-btn-approve" disabled={itemBusy("review", s.id)} onClick={()=>review(s.id,"approved")}>{isBusy(`review-${s.id}-approved`) ? "..." : "Approve"}</button>
+                      <button className="btn md-btn-warn" disabled={itemBusy("review", s.id)} onClick={()=>review(s.id,"needs_revision")}>{isBusy(`review-${s.id}-needs_revision`) ? "..." : "Needs revision"}</button>
                       <button className="btn" disabled={itemBusy("review", s.id)} onClick={()=>review(s.id,"follow_up_requested")}>{isBusy(`review-${s.id}-follow_up_requested`) ? "..." : "Follow-up"}</button>
                     </div>
                   </div>
                   <p className="md-note"><span>Approach</span>{s.approach_note}</p>
                 </article>
-              )) : <p className="ds-muted">No submissions yet.</p>}
+              )) : <div className="md-empty">No submissions yet. New student repos will appear here.</div>}
             </div>
           </section>
 
@@ -144,11 +151,14 @@ export default function MentorDashboardPage() {
                 {requests.length ? requests.map((r) => (
                   <article key={r.id} className="md-item md-item-compact">
                     <div className="md-item-top">
-                      <div><div className="md-item-title"><strong>{r.display_name}</strong><span className={`md-status is-${r.status}`}>{r.status}</span></div><p className="md-note md-note-plain">{r.reason}</p></div>
-                      <div className="md-actions"><button className="btn" disabled={itemBusy("late", r.id)} onClick={()=>decideLate(r.id,"granted")}>{isBusy(`late-${r.id}-granted`) ? "..." : "Grant"}</button><button className="btn" disabled={itemBusy("late", r.id)} onClick={()=>decideLate(r.id,"declined")}>{isBusy(`late-${r.id}-declined`) ? "..." : "Decline"}</button></div>
+                      <div className="md-person">
+                        <div className="md-avatar" aria-hidden="true">{initials(r.display_name)}</div>
+                        <div><div className="md-item-title"><strong>{r.display_name}</strong><span className={`md-status is-${r.status}`}>{r.status}</span></div><p className="md-note md-note-plain">{r.reason}</p></div>
+                      </div>
+                      <div className="md-actions"><button className="btn md-btn-approve" disabled={itemBusy("late", r.id)} onClick={()=>decideLate(r.id,"granted")}>{isBusy(`late-${r.id}-granted`) ? "..." : "Grant"}</button><button className="btn" disabled={itemBusy("late", r.id)} onClick={()=>decideLate(r.id,"declined")}>{isBusy(`late-${r.id}-declined`) ? "..." : "Decline"}</button></div>
                     </div>
                   </article>
-                )) : <p className="ds-muted">No late-access requests.</p>}
+                )) : <div className="md-empty">No late-access requests.</div>}
               </div>
             </section>
           </div>
